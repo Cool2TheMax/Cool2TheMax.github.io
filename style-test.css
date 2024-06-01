@@ -1,0 +1,22 @@
+html {
+	background-color: green;
+	font-family: Courier;
+	text-align: center;
+}
+
+body {
+	background-color: green;
+	margin: 10px 100px 40px 100px;
+	border: 4mm ridge darkgreen;
+}
+
+
+button {
+	background-color: green;
+	color: white;
+}
+
+button:hover {
+	background-color: lightblue;
+	color: black;
+}
