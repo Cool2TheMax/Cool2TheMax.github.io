@@ -2,23 +2,46 @@
 <html>
 	<head>
 		<title>
-			max1's dandy site | Home
+			max1's dandy site | RPG
 		</title>
-		<link rel="shortcut icon" href="img/smileyface2.gif">
-		<link href="style-test.css" rel="stylesheet" type="text/css">
+		<style>
+			html {
+				background-color: green;
+				font-family: Courier;
+				text-align: center;
+			}
+
+			body {
+				background-color: green;
+				border: 4mm ridge darkgreen;
+			}
+
+			a {
+				color: white;
+				border: 20px;
+			}
+
+
+			button {
+				background-color: green;
+				color: white;
+			}
+
+			button:hover {
+				background-color: lightblue;
+				color: black;
+			}
+		</style>
 	</head>
 	<body onload="start()">
-		<h1 id="header">max1's dandy webpage</h1>
-		<h2 id="header2"><em>cool right?</em></h2>
+		<h1>max1's dandy game!</h1>
+		<h2><em>cool right?</em></h2>
+		<a href="../testing.html"><button>Back!</button></a>
 		<br>
-		<h3>What is this?</h3>
-		<p>A mid website :)</p>
-		<h3>Who are you?</h3>
-		<p>A goofy goober :p</p>
-		<canvas id="canvas"></canvas>
-		<br><button id="animation" onclick="startDraw()">Run Canvas</button>	
+		<canvas id='canvas' height='150' width='300'></canvas>
 		
-
-		<script src="jstest.js" type="text/javascript"></script>
+		<script src="initMain.js" type="text/javascript"></script>
+		<script src="dialogue.js" type="text/javascript"></script>
+		<script src="!game.js" type="text/javascript"></script>
 	</body>
-</htm‎l>
+</html>
