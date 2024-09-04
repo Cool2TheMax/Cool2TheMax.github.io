@@ -39,7 +39,7 @@ function playerTick() {
 			playerControls();
 		}
 		if (joyDist > 0) {
-			tryMove()
+			tryMove(joyX, joyY)
 		}
 		cameraX = player.x * 32 + (player.walkTime * joyX) + (EDITOR*50);
 		if (cameraX < 0) {cameraX=0}
