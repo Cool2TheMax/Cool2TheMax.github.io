@@ -14,6 +14,7 @@ function gameLoop() {
 	particleStuff('spark')
 	drawPlayer();
 	drawTiles(3)
+	
 	particleStuff('smoke')
 	if (dialogue) {
 		dialogueStuff()
@@ -24,6 +25,18 @@ function gameLoop() {
 	if (activeTab) {
 		tick++
 	}
+	//ctx.fillStyle = "black"
+	//ctx.fillText(cameraX, 10, 40)
+	//ctx.fillText(cameraY, 10, 60)
+	if (!dialogue && !EDITOR) {
+		ctx.drawImage(UIImages[2], 20, 270+Math.round(Math.sin(tick/50)*5), 24, 24)
+		if (checkMouseBounds(false, 20, 270+Math.round(Math.sin(tick/50)*5), 44, 294+Math.round(Math.sin(tick/50)*5))) {
+			ctx.fillStyle = 'rgb(43, 43, 43)'
+			ctx.fillRect(mouseX, mouseY-9, 230, 21)
+			ctx.fillStyle = 'rgb(250, 255, 186)'
+			ctx.fillText('Not Working Inventory', mouseX+10, mouseY+6)
+		}
+	}
 	requestAnimationFrame(gameLoop)
 }
 
@@ -32,20 +45,26 @@ function gameLoop() {
 //==============================================================
 //==============================================================
 
+let editorCamSupplement = 100
+
+let playerXSup = 9
+let playerYSup = 4
+
+
 function playerTick() {
 	if (!dialogue) {
-		player.currentTile = player.x + 4 + ((player.y+2) * 32)
+		player.currentTile = player.x + playerXSup + ((player.y + playerYSup) * 32)
 		if (!(player.walkTime > 0 && player.walkTime < player.walkDelay)) {
 			playerControls();
 		}
 		if (joyDist > 0) {
 			tryMove(joyX, joyY)
 		}
-		cameraX = player.x * 32 + (player.walkTime * joyX) + (EDITOR*50);
+		cameraX = player.x * 32 + (player.walkTime * joyX) + (EDITOR* (editorCamSupplement/2));
 		if (cameraX < 0) {cameraX=0}
-		if (cameraX > 724+(EDITOR*100)) {cameraX=724+(EDITOR*100)}
+		if (cameraX > 422 +(EDITOR*96)) {cameraX= 422 +(EDITOR * editorCamSupplement)}
 		cameraY = player.y * 32 + (player.walkTime * joyY) ;
-		if (cameraY > 874) {cameraY=874}
+		if (cameraY > 724) {cameraY=724}
 		if (cameraY < 0) {cameraY=0}
 		checkForSigns()
 	}
@@ -57,11 +76,11 @@ function checkForSigns() {
 		if (
 			isKeyPressed('z') && 
 			player.dir == 0 && 
-			(GRID[player.currentTile - GMAX] == 9 || GRID[player.currentTile + (GMAX * (GMAX-1)) == 9]) 
+			(GRID[player.currentTile - GMAX] == 7 || GRID[player.currentTile + (GMAX * (GMAX-1)) == 9]) 
 		) 
 		{
 			player.signReload = 10
-			newDialogue()
+			newDialogue('You saw the sign!#Did it open up your eyes?#Anyways, the site you\'re on is #cool2themax.github.io! #Tell your friends!', tileImages[7])
 		}
 	} else {
 		player.signReload--
@@ -94,15 +113,15 @@ function tryMove(dx, dy) {
 
 
 function pathIsSolid() {
-	let playerTile = player.x+4 + ((player.y+2) * 32)
 	if (joyY == 0) {
-		if (solids[GRID[playerTile + joyX]]) {return true}
+		if (solids[GRID[player.currentTile + joyX]]) {return true}
 	}
 	if (joyX == 0) {
-		if (solids[GRID[playerTile + (joyY*32)]]) {return true}
+		if (solids[GRID[player.currentTile + (joyY*32)]]) {return true}
 	}
 	return false
 }
+
 
 function drawPlayer() {
 	let base
@@ -119,8 +138,8 @@ function drawPlayer() {
 	if (dialogue) {costume = 'img/player/idle0.png'}
 	ctx.drawImage(
 		playerImages[playerSources.indexOf(costume)], 
-		((player.x* 32) - cameraX) + canvas.width/2 - (playerImages[0].width * 2) + (player.walkTime * joyX) + 4, 
-		((player.y* 32) - cameraY) + canvas.height/2 - (playerImages[0].height) + (player.walkTime * joyY),
+		((player.x * 32) - cameraX) + canvas.width/2 - (playerImages[0].width) + (player.walkTime * joyX) + 4, 
+		((player.y * 32) - cameraY) + canvas.height/2 - (playerImages[0].height) + (player.walkTime * joyY) - 9,
 		(playerImages[0].width*2),
 		(playerImages[0].height*2))
 	if (tick % 10 === 1) {
@@ -133,7 +152,10 @@ function drawPlayer() {
 //==============================================================
 
 function drawBackground() {
-	printImg(tileImages[0], -((cameraX % 32)+32), -((cameraY % 32)+32));
+	ctx.drawImage(UIImages[0], -((cameraX % 32)+32), -((cameraY % 32)+32));
+	ctx.drawImage(UIImages[0], -((cameraX % 32)+32) + UIImages[0].width, -((cameraY % 32)+32));
+	ctx.drawImage(UIImages[0], -((cameraX % 32)+32), -((cameraY % 32)+32) + UIImages[0].height);
+	ctx.drawImage(UIImages[0], -((cameraX % 32)+32) + UIImages[0].width, -((cameraY % 32)+32) + UIImages[0].height);
 }
 
 function drawTiles(lay) {
@@ -142,12 +164,12 @@ function drawTiles(lay) {
 	let y = -(cameraY % 32)
 	let x = -(cameraX % 32)
 	
-	for (let i = 0; i < 6; i++) {
+	for (let i = 0; i < 12; i++) {
 		x = - (cameraX % 32)
-		for (let j = 0; j < 11; j++) {
+		for (let j = 0; j < 22; j++) {
 			if (GRID[gidx] !== 0 && GRID[gidx] !== undefined) {
-				printImg(
-						tileImages[GRID[gidx] + ((GRID[gidx] == 5) * Math.ceil(tick/8) % 4)], 
+				ctx.drawImage(
+						tileImages[GRID[gidx] + ((GRID[gidx] == 3) * Math.ceil(tick/8) % 4)], 
 						x, y
 						);
 				if (tileSources[GRID[gidx]] === 'img/tiles/tile4f0.png') {
@@ -163,7 +185,7 @@ function drawTiles(lay) {
 			x += 32
 			gidx++
 		}
-		gidx += GMAX-11
+		gidx += GMAX-22
 		y += 32
 		
 	}
@@ -173,21 +195,21 @@ function drawTiles(lay) {
 
 function newMap() {
 	for (let i = 0; i < (GMAX); i++) {
-		GRID.push(4)
+		GRID.push(2)
 	}
 	for (let i = 0; i < (GMAX-2); i++) {
-		GRID.push(4)
+		GRID.push(2)
 		for (let j = 0; j < (GMAX-2); j++) {
 			if (Math.random() > 0.7) {
-				GRID.push(3);
+				GRID.push(1);
 			} else { 
 				GRID.push(0);
 			}
 		}
-		GRID.push(4)
+		GRID.push(2)
 	}
 	for (let i = 0; i < GMAX; i++) {
-		GRID.push(4)
+		GRID.push(2)
 	}
 	for (let i = 0; i < (GMAX*GMAX)*2; i++) {
 		GRID.push(0)
@@ -210,24 +232,22 @@ function editorStuff() {
 	if (EDITOR) {
 		drawEditor()
 		drawPallete()
-		ctx.fillText('Editor Enabled', 10, 40)
+		ctx.fillText('Editor Enabled', 10, 20)
 	}
-	if (brushnum < 1) {brushnum = 2}
+	if (brushnum < 0 || brushnum > tileImages.length-1) {brushnum = 0}
 }
 
 
 function drawEditor() {
-	if (mouseX < 200) {
+	if (mouseX < 500) {
 		let gx = Math.floor((mouseX + cameraX) / 32)
 		let gy = Math.floor((mouseY + cameraY) / 32)
 		let gidx = gx+(gy*GMAX)
-		if (brushnum===0) {brushnum=2}
 		if (brushnum > tileImages.length) {brushnum=0}
 		printImg(tileImages[brushnum], (gx*32)-cameraX, (gy*32)-cameraY)
 
 		ctx.strokeRect((gx*32)-cameraX, (gy*32)-cameraY, 32, 32)
 		let tmp = gidx + ((LAYER-1)*(GMAX*GMAX))
-		if (brushnum===2) {brushnum=0}
 		if (mouseDown && checkMouseBounds(true)) {GRID[tmp] = brushnum}
 		if (isKeyPressed('e') && checkMouseBounds()) {brushnum = GRID[tmp]}
 		
@@ -240,7 +260,7 @@ function drawEditor() {
 
 function drawPallete(){
 	ctx.fillStyle = "black"
-	ctx.fillRect(200, 0, 100, 150)
+	ctx.fillRect(canvas.width - 100, 0, 100, canvas.height)
 	pallx += joyX
 	pally += joyY
 	if (pallx < 0) {pallx=0}
@@ -250,12 +270,12 @@ function drawPallete(){
 	pallIdx = pallx + (pally * 3)
 	let gx
 	let gy
-	let x = 202
+	let x = 502
 	let y = 11
 
 	for (let i = 0; i < 4; i++) {
 		for (let j = 0; j < 3; j++) {
-			printImg(tileImages[1], x, y)
+			printImg(UIImages[1], x, y)
 			if (j+(i*3)+1 < tileImages.length) {
 				printImg(tileImages[j+(i*3)+1], x, y)
 			}
@@ -265,11 +285,11 @@ function drawPallete(){
 			}
 			x += 32
 		}
-	x = 202
+	x = 502
 	y += 32
 	}
-	if (mouseX > 202 && mouseDown === true && checkMouseBounds(true)) {
-		brushnum = Math.ceil((mouseX-202)/32)+((Math.ceil((mouseY-11)/32))-1)*3
+	if (mouseX > 502 && mouseDown === true && checkMouseBounds(true)) {
+		brushnum = Math.ceil((mouseX-502)/32)+((Math.ceil((mouseY-11)/32))-1)*3
 	}
 	ctx.strokeRect(gx, gy, 32, 32)
 	
@@ -343,5 +363,4 @@ function particleStuff(type) {
 		}
 	}
 }
-
 
