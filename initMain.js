@@ -3,7 +3,7 @@ const ctx= canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false
 
 
-var solids = [false, false, false, false, true, true, true, true, true, true]
+var solids = [false, false, true, true, true, true, true, true]
 var mouseX;
 var mouseY;
 var mouseDown = false;
@@ -42,7 +42,7 @@ window.addEventListener('mousemove', function (e) {
 	mouseX = e.x;
 	mouseY = e.y;
  	mouseX = mouseX-canvas.offsetLeft
-	mouseY = mouseY-canvas.offsetHeight
+	mouseY = mouseY-canvas.offsetTop
 });
 
        document.addEventListener('mousedown', () => {
@@ -56,9 +56,9 @@ window.addEventListener('mousemove', function (e) {
 function checkMouseBounds(def, x1, y1, x2, y2) {
 	if (def) {
 		if (mouseX < 0) {return false}
-		if (mouseX > 300) {return false}
+		if (mouseX > 600) {return false}
 		if (mouseY < 0) {return false}
-		if (mouseY > 150) {return false}
+		if (mouseY > 300) {return false}
 	} else {
 		if (mouseX < x1) {return false}
 		if (mouseX > x2) {return false}
@@ -130,8 +130,6 @@ for (let i = 0; i < playerSources.length; i++) {
 const tileImages = [];
 
 const tileSources = [
-	'img/tiles/background.bmp',
-	'img/tiles/blank.bmp',
 	'img/tiles/tile1.bmp',
 	'img/tiles/tile2.png',
 	'img/tiles/tile3.png',
@@ -146,4 +144,19 @@ for (let i = 0; i < tileSources.length; i++) {
 	const img = new Image();
 	img.src = tileSources[i];
 	tileImages.push(img);
+}
+
+const UIImages = [];
+
+const UISources = [
+	'img/UI/background.bmp',
+	'img/UI/blank.bmp',
+	'img/UI/inventoryBack.png'
+	
+]
+
+for (let i = 0; i < UISources.length; i++) {
+	const img = new Image();
+	img.src = UISources[i];
+	UIImages.push(img);
 }
