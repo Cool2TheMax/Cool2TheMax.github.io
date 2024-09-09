@@ -149,8 +149,8 @@ for (let i = 0; i < tileSources.length; i++) {
 const UIImages = [];
 
 const UISources = [
-	'img/UI/background.bmp',
-	'img/UI/blank.bmp',
+	'img/tiles/background.bmp',
+	'img/tiles/blank.bmp',
 	'img/UI/inventoryBack.png'
 	
 ]
