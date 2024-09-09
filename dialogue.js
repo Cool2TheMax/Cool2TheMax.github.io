@@ -1,22 +1,20 @@
-var dialogue = false;
-var text;
-var alreadyPrinted = "";
-var letter = 1;
+	ctx.drawImage(speaker, 80, 200, 96, 96)
+	
+	for (let i = 0; i < alreadyPrinted.length; i++) {
+		if ((!(alreadyPrinted.charAt(i) == '#' || alreadyPrinted.charAt(i) == '/')|| textSkipNext)) {
+				textSkipNext = false
+				ctx.fillText(alreadyPrinted.charAt(i), x, y)
+				x += 10
+		} else if (alreadyPrinted.charAt(i) == '#') {
+			x = 190
+			y += 15
+		} else if (alreadyPrinted.charAt(i) == '/') {textSkipNext = true}
+		if (x > 505) {
+			x = 190
+			y += 15
+		}
+	}
 
-
-function dialogueStuff() {
-	printRect('red')
-	typeText();
-}
-
-function printRect(fill) {
-	ctx.fillStyle = fill
-	ctx.fillRect(10, 100, 280, 60)
-}
-
-function typeText() {
-	ctx.fillStyle = 'black';
-	ctx.fillText(alreadyPrinted, 15, 115);
 	if (tick % 4 == 3) {
 		alreadyPrinted = alreadyPrinted + text.charAt(letter-1)
 		if (letter < text.length + 1) {
@@ -28,14 +26,23 @@ function typeText() {
 		alreadyPrinted = text
 	}
 	if (isKeyPressed('z') && letter == text.length + 1) {
+		if (textMultiple) {
+			textMultipleNum++
+		}
 		dialogue = false
+
 	}
 }
 
-function newDialogue() {
-	if (tick == 1) {console.log('hi')}
+function newDialogue(newText, newSpeaker) {
 	dialogue = true;
-	text = 'this is a sign'
+	if (typeof newText === 'object') {
+		textMultipleNum++
+		text = newText[textMultipleNum]
+		textMultiple = true
+	}
+	text = newText;
+	speaker = newSpeaker;
 	alreadyPrinted = "";
 	letter = 1;
 	dialogueStuff()
