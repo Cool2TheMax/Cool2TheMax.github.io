@@ -1,10 +1,11 @@
 function start() {
 	console.log('gaming');
 	ctx.font = "bold 18px monospace"
-	newMap();
+	//newMap(); removed for now to show demo-map
 	gameLoop();
 }
 
+var STOP = false;
 
 function gameLoop() {
 	playerTick()
@@ -25,9 +26,6 @@ function gameLoop() {
 	if (activeTab) {
 		tick++
 	}
-	//ctx.fillStyle = "black"
-	//ctx.fillText(cameraX, 10, 40)
-	//ctx.fillText(cameraY, 10, 60)
 	if (!dialogue && !EDITOR) {
 		ctx.drawImage(UIImages[2], 20, 270+Math.round(Math.sin(tick/50)*5), 24, 24)
 		if (checkMouseBounds(false, 20, 270+Math.round(Math.sin(tick/50)*5), 44, 294+Math.round(Math.sin(tick/50)*5))) {
@@ -37,6 +35,7 @@ function gameLoop() {
 			ctx.fillText('Not Working Inventory', mouseX+10, mouseY+6)
 		}
 	}
+	if (STOP) {return true;} 
 	requestAnimationFrame(gameLoop)
 }
 
@@ -52,6 +51,7 @@ let playerYSup = 4
 
 
 function playerTick() {
+	place.full = place.name + '.' + place.x + '.' + place.y
 	if (!dialogue) {
 		player.currentTile = player.x + playerXSup + ((player.y + playerYSup) * 32)
 		if (!(player.walkTime > 0 && player.walkTime < player.walkDelay)) {
@@ -60,16 +60,16 @@ function playerTick() {
 		if (joyDist > 0) {
 			tryMove(joyX, joyY)
 		}
-		cameraX = player.x * 32 + (player.walkTime * joyX) + (EDITOR* (editorCamSupplement/2));
+		cameraX = player.x * 32 + ((player.walkTime * (((player.isSprinting*1)+1))) * joyX) + (EDITOR* (editorCamSupplement/2));
 		if (cameraX < 0) {cameraX=0}
-		if (cameraX > 422 +(EDITOR*96)) {cameraX= 422 +(EDITOR * editorCamSupplement)}
-		cameraY = player.y * 32 + (player.walkTime * joyY) ;
-		if (cameraY > 724) {cameraY=724}
+		if (cameraX > 422 +(EDITOR*96)-32) {cameraX= 422 +(EDITOR * 100)-32}
+		cameraY = player.y * 32 + ((player.walkTime * ((player.isSprinting*1)+1)) * joyY) ;
+		if (cameraY > 724-32) {cameraY=724-32}
 		if (cameraY < 0) {cameraY=0}
+		playerCheckOutOfBounds()
 		checkForSigns()
 	}
 }
-
 
 function checkForSigns() {
 	if (player.signReload == 0) {
@@ -93,6 +93,13 @@ function playerControls() {
 	joyY = (isKeyPressed('s') || isKeyPressed('ArrowDown'));
 	joyY -= (isKeyPressed('w') || isKeyPressed('ArrowUp'));
 	joyDist = Math.sqrt((joyX * joyX) + (joyY * joyY));
+	if (isKeyPressed('x')) {
+		player.walkDelay = 16;
+		player.isSprinting = true;
+	} else {
+		player.walkDelay = 32;
+		player.isSprinting = false;
+	}
 	if (joyX !== 0 && joyY !== 0) {joyX = 0}
 	if (joyX > 0) {player.dir = 90} else if (joyX < 0) {player.dir = 270}
 
@@ -117,7 +124,7 @@ function pathIsSolid() {
 		if (solids[GRID[player.currentTile + joyX]]) {return true}
 	}
 	if (joyX == 0) {
-		if (solids[GRID[player.currentTile + (joyY*32)]]) {return true}
+		if (solids[GRID[player.currentTile + (joyY*GMAX)]]) {return true}
 	}
 	return false
 }
@@ -138,13 +145,58 @@ function drawPlayer() {
 	if (dialogue) {costume = 'img/player/idle0.png'}
 	ctx.drawImage(
 		playerImages[playerSources.indexOf(costume)], 
-		((player.x * 32) - cameraX) + canvas.width/2 - (playerImages[0].width) + (player.walkTime * joyX) + 4, 
-		((player.y * 32) - cameraY) + canvas.height/2 - (playerImages[0].height) + (player.walkTime * joyY) - 9,
+		((player.x * 32) - cameraX) + canvas.width/2 - (playerImages[0].width) + ((player.walkTime * ((player.isSprinting*1)+1))* joyX) + 4, 
+		((player.y * 32) - cameraY) + canvas.height/2 - (playerImages[0].height) + ((player.walkTime * ((player.isSprinting*1)+1)) * joyY) - 9,
 		(playerImages[0].width*2),
 		(playerImages[0].height*2))
 	if (tick % 10 === 1) {
 		player.frame++
 	}
+}
+
+
+function playerCheckOutOfBounds() {
+	if (player.x < -9) {changeScene('edge', -1, 0)}
+	if (player.y < -4) {changeScene('edge', 0, -1)}
+	if (player.x > 21) {changeScene('edge', 1, 0)}
+	if (player.y > 26) {changeScene('edge', 0, 1)}
+}
+
+function changeScene(type, dx, dy) {
+	if (EDITOR) {saveScene()}
+
+	if (type === 'edge') {
+		place.x += dx
+		place.y += dy
+	}
+	place.full = place.name + '.' + place.x + '.' + place.y
+	loadScene()
+
+	if (type === 'edge') {
+		if (dx) {
+			if (dx === 1) {player.x = -9}
+			if (dx === -1) {player.x = 21}
+		}
+		if (dy) {
+			if (dy === 1) {player.y = -3}
+			if (dy === -1) {player.y = 25}
+		}
+	}	
+}
+
+
+
+function saveScene() {
+	savedGRIDS[savedNAMES.indexOf(place.full)] = GRID
+}
+
+function loadScene() {
+	if (savedNAMES.indexOf(place.full) === -1) {
+		newMap()
+		savedGRIDS.push(GRID)
+		savedNAMES.push(place.full)
+	}
+	GRID = savedGRIDS[savedNAMES.indexOf(place.full)]
 }
 
 //MAP STUFF
@@ -194,12 +246,13 @@ function drawTiles(lay) {
 
 
 function newMap() {
+	GRID = []
 	for (let i = 0; i < (GMAX); i++) {
 		GRID.push(2)
 	}
-	for (let i = 0; i < (GMAX-2); i++) {
+	for (let i = 0; i < (GMAX-3); i++) {
 		GRID.push(2)
-		for (let j = 0; j < (GMAX-2); j++) {
+		for (let j = 0; j < (GMAX-3); j++) {
 			if (Math.random() > 0.7) {
 				GRID.push(1);
 			} else { 
@@ -207,11 +260,12 @@ function newMap() {
 			}
 		}
 		GRID.push(2)
+		GRID.push(0)
 	}
-	for (let i = 0; i < GMAX; i++) {
+	for (let i = 0; i < GMAX-1; i++) {
 		GRID.push(2)
 	}
-	for (let i = 0; i < (GMAX*GMAX)*2; i++) {
+	for (let i = 0; i < (GMAX*GMAX)*2+(GMAX+1); i++) {
 		GRID.push(0)
 	}
 
@@ -224,6 +278,7 @@ function newMap() {
 function editorStuff() {
 	if (isKeyPressed(' ') && (tick % 5 == 0)){
 		if (EDITOR) {
+			saveScene()
 			EDITOR = false;
 		} else {
 			EDITOR = true;
@@ -314,6 +369,7 @@ class Particle {
 			this.speedY = 6 +((Math.random()-0.5)*4)
 			this.speedX = randInt(-3, 3)
 		}
+		
 		this.type = type
 		this.frame = frame
 	}
@@ -324,9 +380,8 @@ class Particle {
 			ctx.fillRect(this.x - cameraX, this.y - cameraY, 10, 10)		
 		} else if (this.type === 'spark') {
 			ctx.fillStyle = "yellow"
-			ctx.fillRect(this.x - cameraX, this.y - cameraY, 2, 2)	
-		}
-		
+			ctx.fillRect(this.x - cameraX, this.y - cameraY, 2, 2)
+		}	
 	}
 
 	update() {
@@ -363,4 +418,6 @@ function particleStuff(type) {
 		}
 	}
 }
+
+
 
