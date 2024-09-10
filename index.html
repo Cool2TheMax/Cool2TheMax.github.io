@@ -37,7 +37,13 @@
 	</head>
 	<body onload="start()">
 		<canvas id='canvas' height='300' width='600'></canvas>
-		
+		<script type="text/javascript">
+			if (prompt('Hello! Want to know the controls? Then press 1!') === 1) {
+				alert('WASD and ARROWS = Moving, X = SPRINT or Skip Dialogue, Z = Close or Open Dialogue, SPACE = EDITOR' )
+				
+			}
+			
+		</script>
 		<script src="initMain.js" type="text/javascript"></script>
 		<script src="dialogue.js" type="text/javascript"></script>
 		<script src="!game.js" type="text/javascript"></script>
