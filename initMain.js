@@ -19,7 +19,8 @@ var player = {
 	walkTime : 0,
 	walkDelay : 32,
 	currentTile : 0,
-	signReload : 0
+	signReload : 0,
+	isSprinting : false
 }
 
 var cameraY;
@@ -28,7 +29,16 @@ var joyX = 0;
 var joyY = 0;
 var joyDist;
 var GMAX = 32;
-const GRID = [];
+var GRID = [];
+var place = {
+	name : 'over',
+	x : 0,
+	y : 0,
+	full : 'over.0.0'
+}
+var savedGRIDS = [GRID]
+var savedNAMES = [place.full]
+
 
 var EDITOR = false;
 var brushnum = 2;
@@ -149,8 +159,8 @@ for (let i = 0; i < tileSources.length; i++) {
 const UIImages = [];
 
 const UISources = [
-	'img/tiles/background.bmp',
-	'img/tiles/blank.bmp',
+	'img/UI/background.bmp',
+	'img/UI/blank.bmp',
 	'img/UI/inventoryBack.png'
 	
 ]
