@@ -19,8 +19,7 @@ var player = {
 	walkTime : 0,
 	walkDelay : 32,
 	currentTile : 0,
-	signReload : 0,
-	isSprinting : false
+	signReload : 0
 }
 
 var cameraY;
