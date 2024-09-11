@@ -1,7 +1,8 @@
 function start() {
 	console.log('gaming');
 	ctx.font = "bold 18px monospace"
-	//newMap(); removed for now to show demo-map
+	alert('Controls! WASD and ARROWS = Movement! Z = Close and Open Dialogue! X = SPRINT *or* Skip Dialogue! SPACE = EDITOR!')
+	newMap(); //will remove in leui (leiu?) of demo map
 	gameLoop();
 }
 
@@ -60,10 +61,10 @@ function playerTick() {
 		if (joyDist > 0) {
 			tryMove(joyX, joyY)
 		}
-		cameraX = player.x * 32 + ((player.walkTime * (((player.isSprinting*1)+1))) * joyX) + (EDITOR* (editorCamSupplement/2));
+		cameraX = player.x * 32 + (player.walkTime * joyX) + (EDITOR * (editorCamSupplement/2));
 		if (cameraX < 0) {cameraX=0}
 		if (cameraX > 422 +(EDITOR*96)-32) {cameraX= 422 +(EDITOR * 100)-32}
-		cameraY = player.y * 32 + ((player.walkTime * ((player.isSprinting*1)+1)) * joyY) ;
+		cameraY = player.y * 32 + (player.walkTime * joyY) ;
 		if (cameraY > 724-32) {cameraY=724-32}
 		if (cameraY < 0) {cameraY=0}
 		playerCheckOutOfBounds()
@@ -93,13 +94,6 @@ function playerControls() {
 	joyY = (isKeyPressed('s') || isKeyPressed('ArrowDown'));
 	joyY -= (isKeyPressed('w') || isKeyPressed('ArrowUp'));
 	joyDist = Math.sqrt((joyX * joyX) + (joyY * joyY));
-	if (isKeyPressed('x')) {
-		player.walkDelay = 16;
-		player.isSprinting = true;
-	} else {
-		player.walkDelay = 32;
-		player.isSprinting = false;
-	}
 	if (joyX !== 0 && joyY !== 0) {joyX = 0}
 	if (joyX > 0) {player.dir = 90} else if (joyX < 0) {player.dir = 270}
 
@@ -109,8 +103,8 @@ function playerControls() {
 
 function tryMove(dx, dy) {
 	if (joyDist > 0 && !pathIsSolid()) {
-		player.walkTime++
-		if (player.walkTime == player.walkDelay) {
+		player.walkTime += (isKeyPressed('x') * 1) + 1
+		if (player.walkTime >= player.walkDelay) {
 			player.x += dx;
 			player.y += dy;
 			player.walkTime = 0
@@ -145,8 +139,8 @@ function drawPlayer() {
 	if (dialogue) {costume = 'img/player/idle0.png'}
 	ctx.drawImage(
 		playerImages[playerSources.indexOf(costume)], 
-		((player.x * 32) - cameraX) + canvas.width/2 - (playerImages[0].width) + ((player.walkTime * ((player.isSprinting*1)+1))* joyX) + 4, 
-		((player.y * 32) - cameraY) + canvas.height/2 - (playerImages[0].height) + ((player.walkTime * ((player.isSprinting*1)+1)) * joyY) - 9,
+		((player.x * 32) - cameraX) + canvas.width/2 - (playerImages[0].width) + (player.walkTime *  joyX) + 4, 
+		((player.y * 32) - cameraY) + canvas.height/2 - (playerImages[0].height) + (player.walkTime  * joyY) - 9,
 		(playerImages[0].width*2),
 		(playerImages[0].height*2))
 	if (tick % 10 === 1) {
