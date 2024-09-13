@@ -1,3 +1,6 @@
+const typedInputBox = document.getElementById("typedInput")
+var typedInput = typedInputBox.value;
+
 const canvas = document.getElementById('canvas');
 const ctx= canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false
@@ -168,4 +171,11 @@ for (let i = 0; i < UISources.length; i++) {
 	const img = new Image();
 	img.src = UISources[i];
 	UIImages.push(img);
+}
+
+function typedAnswerSubmit() {
+	typedInput = typedInputBox.value
+	typedInputBox.style.display = 'none'
+	document.getElementById("submitButton").style.display = 'none'
+	TYPING = false
 }
