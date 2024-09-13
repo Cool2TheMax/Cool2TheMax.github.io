@@ -53,7 +53,7 @@ let playerYSup = 4
 
 function playerTick() {
 	place.full = place.name + '.' + place.x + '.' + place.y
-	if (!dialogue) {
+	if (!dialogue && !TYPING) {
 		player.currentTile = player.x + playerXSup + ((player.y + playerYSup) * 32)
 		if (!(player.walkTime > 0 && player.walkTime < player.walkDelay)) {
 			playerControls();
