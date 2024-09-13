@@ -5,6 +5,8 @@ const canvas = document.getElementById('canvas');
 const ctx= canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false
 
+let DIALOGUES = []
+let DialogueLocations = []
 
 var solids = [false, false, true, true, true, true, true, true]
 var mouseX;
