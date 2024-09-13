@@ -4,7 +4,7 @@
 		<title>
 			max1's dandy site | RPG
 		</title>
-		<link rel="shortcut icon" href="img/smileyface2.gif">
+		<link rel="shortcut icon" href="../img/smileyface2.gif">
 		<style>
 			html {
 				background-color: green;
@@ -26,7 +26,6 @@
 			button {
 				background-color: green;
 				color: white;
-				font-family: Courier;
 			}
 
 			button:hover {
@@ -37,7 +36,12 @@
 	</head>
 	<body onload="start()">
 		<canvas id='canvas' height='300' width='600'></canvas>
-
+		<div style="text-align: center;">
+		<br>
+			<input style="display: none;" id="typedInput" type="text">
+			<br>
+			<button style="display: none;" id="submitButton" onclick="typedAnswerSubmit()">Submit</button>
+		<div>
 		<script src="initMain.js" type="text/javascript"></script>
 		<script src="dialogue.js" type="text/javascript"></script>
 		<script src="!game.js" type="text/javascript"></script>
