@@ -8,7 +8,7 @@ function start() {
 
 var STOP = false;
 
-function gameLoop() {
+function gameLoop() { 
 	playerTick()
 	drawBackground();
 	drawTiles(1);
@@ -32,7 +32,7 @@ function gameLoop() {
 		if (checkMouseBounds(false, 20, 270+Math.round(Math.sin(tick/50)*5), 44, 294+Math.round(Math.sin(tick/50)*5))) {
 			ctx.fillStyle = 'rgb(43, 43, 43)'
 			ctx.fillRect(mouseX, mouseY-9, 230, 21)
-			ctx.fillStyle = 'rgb(250, 255, 186)'
+			ctx.fillStyle = 'rgb(250, 255, 186)'				
 			ctx.fillText('Not Working Inventory', mouseX+10, mouseY+6)
 		}
 	}
@@ -61,10 +61,10 @@ function playerTick() {
 		if (joyDist > 0) {
 			tryMove(joyX, joyY)
 		}
-		cameraX = player.x * 32 + (player.walkTime * joyX) + (EDITOR * (editorCamSupplement/2));
+		cameraX = player.x * 32 + (player.walkTime * joyX) + (EDITOR* (editorCamSupplement/2));
 		if (cameraX < 0) {cameraX=0}
 		if (cameraX > 422 +(EDITOR*96)-32) {cameraX= 422 +(EDITOR * 100)-32}
-		cameraY = player.y * 32 + (player.walkTime * joyY) ;
+		cameraY = player.y * 32 + ((player.walkTime) * joyY) ;
 		if (cameraY > 724-32) {cameraY=724-32}
 		if (cameraY < 0) {cameraY=0}
 		playerCheckOutOfBounds()
@@ -77,11 +77,14 @@ function checkForSigns() {
 		if (
 			isKeyPressed('z') && 
 			player.dir == 0 && 
-			(GRID[player.currentTile - GMAX] == 7 || GRID[player.currentTile + (GMAX * (GMAX-1)) == 9]) 
+			(GRID[player.currentTile - GMAX] == 7 || GRID[player.currentTile + (GMAX * (GMAX-1)) == 7]) 
 		) 
 		{
 			player.signReload = 10
-			newDialogue('You saw the sign!#Did it open up your eyes?#Anyways, the site you\'re on is #cool2themax.github.io! #Tell your friends!', tileImages[7])
+			if (GRID[player.currentTile - GMAX] == 7) {newDialogue(DIALOGUES[DialogueLocations.indexOf((player.currentTile - GMAX) + place.full)], tileImages[7])
+			} else {newDialogue(DIALOGUES[DialogueLocations.indexOf((player.currentTile + (GMAX * (GMAX-1))) + place.full)], tileImages[7])}
+			
+			
 		}
 	} else {
 		player.signReload--
@@ -103,7 +106,7 @@ function playerControls() {
 
 function tryMove(dx, dy) {
 	if (joyDist > 0 && !pathIsSolid()) {
-		player.walkTime += (isKeyPressed('x') * 1) + 1
+		player.walkTime += (isKeyPressed('x') * 1) + 1 
 		if (player.walkTime >= player.walkDelay) {
 			player.x += dx;
 			player.y += dy;
@@ -139,8 +142,8 @@ function drawPlayer() {
 	if (dialogue) {costume = 'img/player/idle0.png'}
 	ctx.drawImage(
 		playerImages[playerSources.indexOf(costume)], 
-		((player.x * 32) - cameraX) + canvas.width/2 - (playerImages[0].width) + (player.walkTime *  joyX) + 4, 
-		((player.y * 32) - cameraY) + canvas.height/2 - (playerImages[0].height) + (player.walkTime  * joyY) - 9,
+		((player.x * 32) - cameraX) + canvas.width/2 - (playerImages[0].width) + (player.walkTime * joyX) + 4, 
+		((player.y * 32) - cameraY) + canvas.height/2 - (playerImages[0].height) + (player.walkTime * joyY) - 9,
 		(playerImages[0].width*2),
 		(playerImages[0].height*2))
 	if (tick % 10 === 1) {
@@ -297,7 +300,18 @@ function drawEditor() {
 
 		ctx.strokeRect((gx*32)-cameraX, (gy*32)-cameraY, 32, 32)
 		let tmp = gidx + ((LAYER-1)*(GMAX*GMAX))
-		if (mouseDown && checkMouseBounds(true)) {GRID[tmp] = brushnum}
+		if (mouseDown && checkMouseBounds(true)) {
+			if (tileSources[GRID[tmp]] === 'img/tiles/tile5.png') {
+				tmp2 = DialogueLocations.indexOf(tmp + place.full)
+				DIALOGUES.splice(tmp2, 1)
+				DialogueLocations.splice(tmp2, 1)
+			} 
+			if (brushnum === 7) {
+				DialogueLocations.push(tmp + place.full)
+				DIALOGUES.push('You Saw The Sign!#Did It Open Up Your eyes?#Anyways, the site you\'re on is #cool2themax.github.io!#Tell your friends')
+			}
+			GRID[tmp] = brushnum
+		}
 		if (isKeyPressed('e') && checkMouseBounds()) {brushnum = GRID[tmp]}
 		
 	}
