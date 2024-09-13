@@ -23,8 +23,8 @@ function typeText() {
 	let x = 190
 	let y = 210
 	ctx.fillStyle = 'rgb(250, 255, 186)';
+	
 	ctx.drawImage(speaker, 80, 200, 96, 96)
-
 	if (EDITOR && !(letter == text.length + 1) && (!TYPING)) {
 		alreadyPrinted = text
 		letter = text.length + 1
@@ -37,6 +37,7 @@ function typeText() {
 		DIALOGUES[DIALOGUES.indexOf(text)] = typedInput
 		typedInput = ''
 	}
+	
 	for (let i = 0; i < alreadyPrinted.length; i++) {
 		if ((!(alreadyPrinted.charAt(i) == '#' || alreadyPrinted.charAt(i) == '/')|| textSkipNext)) {
 				textSkipNext = false
