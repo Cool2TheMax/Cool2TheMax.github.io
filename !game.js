@@ -1,14 +1,14 @@
 function start() {
 	console.log('gaming');
 	ctx.font = "bold 18px monospace"
-	alert('Controls! WASD and ARROWS = Movement! Z = Close and Open Dialogue! X = SPRINT *or* Skip Dialogue! SPACE = EDITOR!')
-	newMap(); //will remove in leui (leiu?) of demo map
+	newMap();
 	gameLoop();
 }
 
 var STOP = false;
+var MENU = false;
 
-function gameLoop() { 
+function gameLoop() {
 	playerTick()
 	drawBackground();
 	drawTiles(1);
@@ -22,22 +22,61 @@ function gameLoop() {
 		dialogueStuff()
 	} else {
 		editorStuff()
+		menuStuff()
 	}
-	
-	if (activeTab) {
-		tick++
-	}
-	if (!dialogue && !EDITOR) {
-		ctx.drawImage(UIImages[2], 20, 270+Math.round(Math.sin(tick/50)*5), 24, 24)
-		if (checkMouseBounds(false, 20, 270+Math.round(Math.sin(tick/50)*5), 44, 294+Math.round(Math.sin(tick/50)*5))) {
-			ctx.fillStyle = 'rgb(43, 43, 43)'
-			ctx.fillRect(mouseX, mouseY-9, 230, 21)
-			ctx.fillStyle = 'rgb(250, 255, 186)'				
-			ctx.fillText('Not Working Inventory', mouseX+10, mouseY+6)
-		}
-	}
+
+	fpsStuff()
+
 	if (STOP) {return true;} 
 	requestAnimationFrame(gameLoop)
+}
+
+
+var menuLevel = 0;
+let MenuItems = ['Inventory', 'Save', 'Exit']
+let MenuFunctions = [
+		function() {console.log('WIP')}, 
+		function() {
+			saveScene()
+			console.log('WIP'/*'savedGRIDS = [' + savedGRIDS + '];  savedNAMES = [\'' + savedNAMES + '\']'*/)
+		},
+		function() {MENU = false}
+	]
+
+function menuStuff() {
+	if (isKeyPressed('Enter') && !EDITOR && !dialogue && tick % 10 == 0) {
+		if (!MENU) {
+			MENU = true;
+			menuLevel = 0;
+		}
+	}
+	if (MENU) {
+		let menuJoy
+		if (tick % 4 == 0){
+			menuJoy = (isKeyPressed('s') || isKeyPressed('ArrowDown'))
+			menuJoy -= (isKeyPressed('w') || isKeyPressed('ArrowUp'))
+			menuLevel += menuJoy * !((menuLevel == 0 && menuJoy == -1) || (menuLevel == MenuItems.length - 1 && menuJoy == 1))
+		}
+		if (tick % 4 == 0 && isKeyPressed('z')) {MenuFunctions[menuLevel]()}
+		drawMenu()
+	}
+}
+
+function drawMenu() {
+	ctx.fillStyle = 'rgb(43, 43, 43)'
+	ctx.fillRect(10, 10, 120, 200)
+	ctx.fillStyle = 'rgb(250, 255, 186)'				
+	for (let i = 0; i < MenuItems.length; i++) {
+		ctx.fillText(MenuItems[i], 16, i * 17 + 32)
+	}
+
+	ctx.beginPath()
+	ctx.moveTo(110, menuLevel * 17 + 28)
+	ctx.lineTo(128, menuLevel * 17 + 35)
+	ctx.lineTo(128, menuLevel * 17 + 21)
+	ctx.lineTo(110, menuLevel * 17 + 28)
+	ctx.closePath()
+	ctx.fill()
 }
 
 
@@ -56,7 +95,13 @@ function playerTick() {
 	if (!dialogue && !TYPING) {
 		player.currentTile = player.x + playerXSup + ((player.y + playerYSup) * 32)
 		if (!(player.walkTime > 0 && player.walkTime < player.walkDelay)) {
-			playerControls();
+			if (!MENU) {
+				playerControls();
+			} else {
+				joyX = 0
+				joyY = 0
+				joyDist = 0
+			}
 		}
 		if (joyDist > 0) {
 			tryMove(joyX, joyY)
@@ -73,7 +118,7 @@ function playerTick() {
 }
 
 function checkForSigns() {
-	if (player.signReload == 0) {
+	if (!MENU && player.signReload == 0) {
 		if (
 			isKeyPressed('z') && 
 			player.dir == 0 && 
@@ -127,8 +172,12 @@ function pathIsSolid() {
 }
 
 
+let sx = 0
+let sy = 0
+let sw = 1
+let sh = 1
+
 function drawPlayer() {
-	let base
 	let costume
 
 	if (joyDist > 0) {
@@ -140,12 +189,71 @@ function drawPlayer() {
 	}
 
 	if (dialogue) {costume = 'img/player/idle0.png'}
-	ctx.drawImage(
-		playerImages[playerSources.indexOf(costume)], 
-		((player.x * 32) - cameraX) + canvas.width/2 - (playerImages[0].width) + (player.walkTime * joyX) + 4, 
-		((player.y * 32) - cameraY) + canvas.height/2 - (playerImages[0].height) + (player.walkTime * joyY) - 9,
-		(playerImages[0].width*2),
-		(playerImages[0].height*2))
+	//ctx.drawImage(
+	//	playerImages[playerSources.indexOf(costume)], 
+	//	((player.x * 32) - cameraX) + canvas.width/2 - (playerImages[0].width) + (player.walkTime * joyX) + 4, 
+	//	((player.y * 32) - cameraY) + canvas.height/2 - (playerImages[0].height) + (player.walkTime * joyY) - 9,
+	//	(playerImages[0].width*2),
+	//	(playerImages[0].height*2))
+
+		// Left Leg
+		ctx.drawImage(
+			playerImages[12],
+			(player.dir == 90) * 8 + 2, 26, 4, 3, 
+			player.x * 32 - cameraX + (canvas.width/2) + (player.walkTime * joyX) + ((player.dir % 180 == 0) * 1) + ((player.dir == 90) * 4) + ((player.dir == 270) * 3), 
+			player.y * 32 - cameraY + (canvas.height/2) + (player.walkTime * joyY) + ((player.walkTime % 16 <= 7 && joyDist !== 0) * -1) + 10, 
+			4, 5 
+		)
+		// Right Leg
+		ctx.drawImage(
+			playerImages[12],
+			(player.dir == 270) * -8 + 10, 26, 4, 3, 
+			player.x * 32 - cameraX + (canvas.width/2) + (player.walkTime * joyX) + ((player.dir == 90) * -3) + ((player.dir == 270) * -4) + 6, 
+			player.y * 32 - cameraY + (canvas.height/2) + (player.walkTime * joyY) + ((player.walkTime % 16 >= 9) * -1) + ((player.walkTime % 16 >= 7) * -1) + 10, 
+			4, 5
+		)
+		// head
+		ctx.drawImage(
+			playerImages[12],
+			player.dir / 90 * 18, 0, 18, 11, 
+			player.x * 32 - cameraX + (canvas.width/2) + (player.walkTime * joyX) - 2, 
+			player.y * 32 - cameraY + (canvas.height/2) + (player.walkTime * joyY) - 11, 
+			18, 11, 
+		)
+		//player body		
+		ctx.drawImage(
+			playerImages[12],
+			23, 26, 11, 11, 
+			player.x * 32 - cameraX + (canvas.width/2) + (player.walkTime * joyX), 
+			player.y * 32 - cameraY + (canvas.height/2) + (player.walkTime * joyY), 
+			11, 11
+		)
+		//bag
+		ctx.drawImage(
+			playerImages[12],
+			player.dir / 90 * 18, 17, 18, 7, 
+			player.x * 32 - cameraX + (canvas.width/2) + (player.walkTime * joyX) - 2, 
+			player.y * 32 - cameraY + (canvas.height/2) + (player.walkTime * joyY), 
+			18, 7
+		)
+		//left hand
+		ctx.drawImage(
+			playerImages[12],
+			60, 26, 4, 4, 
+			player.x * 32 - cameraX + (canvas.width/2) + (player.walkTime * joyX) + ((player.dir % 180 == 90) * 8) - 4, 
+			player.y * 32 - cameraY + (canvas.height/2) + (player.walkTime * joyY) + 4, 
+			4, 4 
+		)
+		//right hand
+		ctx.drawImage(
+			playerImages[12],
+			60, 26, 4, 4, 
+			player.x * 32 - cameraX + (canvas.width/2) + (player.walkTime * joyX) + ((player.dir % 180 == 90) * -8) + 11, 
+			player.y * 32 - cameraY + (canvas.height/2) + (player.walkTime * joyY) + 4, 
+			4, 4 
+		)
+
+
 	if (tick % 10 === 1) {
 		player.frame++
 	}
@@ -178,7 +286,8 @@ function changeScene(type, dx, dy) {
 			if (dy === 1) {player.y = -3}
 			if (dy === -1) {player.y = 25}
 		}
-	}	
+	}
+	particlesArray = []	
 }
 
 
@@ -273,7 +382,7 @@ function newMap() {
 //====================================================
 
 function editorStuff() {
-	if (isKeyPressed(' ') && (tick % 5 == 0)){
+	if (isKeyPressed(' ') && (tick % 5 == 0) && !TYPING && !MENU){
 		if (EDITOR) {
 			saveScene()
 			EDITOR = false;
@@ -364,7 +473,8 @@ function drawPallete(){
 //PARTICLES
 //===========================================================
 //===========================================================
-const particlesArray = []
+
+var particlesArray = []
 
 
 class Particle {
@@ -428,4 +538,24 @@ function particleStuff(type) {
 }
 
 
+//FPS
+//===========================================================
+//===========================================================
 
+
+let times = []
+
+function fpsStuff() {
+	const now = performance.now();
+	while (times.length > 0 && times[0] <= now - 1000) {
+		times.shift();
+	}
+	times.push(now);
+	if (EDITOR) {
+		ctx.fillStyle = 'black'
+		ctx.fillText('FPS: ' + times.length, 10, 40)
+	}
+	if (activeTab) {
+		tick++
+	}
+}
