@@ -132,7 +132,8 @@ const playerSources = [
 	'img/player/walk1802.png',
 	'img/player/idle270.png',
 	'img/player/walk2701.png',
-	'img/player/walk2702.png'
+	'img/player/walk2702.png',
+	'img/player/spritesheet2Enhanced.png'
 ]
 
 for (let i = 0; i < playerSources.length; i++) {
