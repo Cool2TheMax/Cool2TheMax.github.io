@@ -5,10 +5,14 @@ function start() {
 	gameLoop();
 }
 
-var STOP = false;
-var MENU = false;
-
 function gameLoop() {
+	if (isKeyPressed('z')) {
+		player.zHeldDown = zLastTurn
+		zLastTurn = true	
+	} else {
+		player.zHeldDown = false
+		zLastTurn = false
+	}
 	playerTick()
 	drawBackground();
 	drawTiles(1);
@@ -32,17 +36,27 @@ function gameLoop() {
 }
 
 
+var skinMenu = false
 var menuLevel = 0;
-let MenuItems = ['Inventory', 'Save', 'Exit']
-let MenuFunctions = [
-		function() {console.log('WIP')}, 
+const MenuItems = ['Inventory', 'Save', 'Skins', 'EDITOR', 'Exit']
+const MenuFunctions = [
+		function() {feedback.push({text : 'WIP: Inventory is work in progress', howLongAgo : 0})}, 
 		function() {
 			saveScene()
-			console.log('WIP'/*'savedGRIDS = [' + savedGRIDS + '];  savedNAMES = [\'' + savedNAMES + '\']'*/)
+			feedback.push({text : 'WIP: Saving is work in progress', howLongAgo : 0})
+		},
+		function () {
+			skinMenu = true
+		},
+		function () {
+			MENU = false;
+			EDITOR = true;
 		},
 		function() {MENU = false}
 	]
 
+let menuJoyX
+let menuJoyY
 function menuStuff() {
 	if (isKeyPressed('Enter') && !EDITOR && !dialogue && tick % 10 == 0) {
 		if (!MENU) {
@@ -51,32 +65,81 @@ function menuStuff() {
 		}
 	}
 	if (MENU) {
-		let menuJoy
 		if (tick % 4 == 0){
-			menuJoy = (isKeyPressed('s') || isKeyPressed('ArrowDown'))
-			menuJoy -= (isKeyPressed('w') || isKeyPressed('ArrowUp'))
-			menuLevel += menuJoy * !((menuLevel == 0 && menuJoy == -1) || (menuLevel == MenuItems.length - 1 && menuJoy == 1))
+			menuJoyY = (isKeyPressed('s') || isKeyPressed('ArrowDown'))
+			menuJoyY -= (isKeyPressed('w') || isKeyPressed('ArrowUp'))
+			menuJoyX = (isKeyPressed('d') || isKeyPressed('ArrowRight'))
+			menuJoyX -= (isKeyPressed('a') || isKeyPressed('ArrowLeft'))
+			if (!skinMenu) {
+				menuLevel += menuJoyY * !((menuLevel == 0 && menuJoyY == -1) || (menuLevel == MenuItems.length - 1 && menuJoyY == 1))
+			}
 		}
-		if (tick % 4 == 0 && isKeyPressed('z')) {MenuFunctions[menuLevel]()}
+		if (isKeyPressed('z') && !player.zHeldDown) {MenuFunctions[menuLevel]()}
+		drawSubMenu()
 		drawMenu()
 	}
 }
 
+var MenuOffset = 460
+
 function drawMenu() {
+
 	ctx.fillStyle = 'rgb(43, 43, 43)'
-	ctx.fillRect(10, 10, 120, 200)
+	ctx.fillRect(10 + MenuOffset, 10, 120, 200)
 	ctx.fillStyle = 'rgb(250, 255, 186)'				
 	for (let i = 0; i < MenuItems.length; i++) {
-		ctx.fillText(MenuItems[i], 16, i * 17 + 32)
+		ctx.fillText(MenuItems[i], 16 + MenuOffset, i * 17 + 32)
 	}
 
 	ctx.beginPath()
-	ctx.moveTo(110, menuLevel * 17 + 28)
-	ctx.lineTo(128, menuLevel * 17 + 35)
-	ctx.lineTo(128, menuLevel * 17 + 21)
-	ctx.lineTo(110, menuLevel * 17 + 28)
+	ctx.moveTo(110 + MenuOffset, menuLevel * 17 + 28)
+	ctx.lineTo(128 + MenuOffset, menuLevel * 17 + 35)
+	ctx.lineTo(128 + MenuOffset, menuLevel * 17 + 21)
+	ctx.lineTo(110 + MenuOffset, menuLevel * 17 + 28)
 	ctx.closePath()
 	ctx.fill()
+}
+
+let skinNames = [
+	'Cap',
+	'Attitude',
+	'Shirt',
+	'Satchel', 
+	'Hands',
+	'Shoes'
+]
+
+let skinMenuLevel = 0
+var m = 0
+var x = 0
+
+function drawSubMenu() {
+	if (skinMenu) {
+		ctx.fillStyle = 'rgb(43, 43, 43)'
+		ctx.fillRect(-160 + MenuOffset, 53, 165, 120)
+		ctx.fillStyle = 'rgb(250, 255, 186)'
+		for (let i = 0; i < 6; i++) {
+			ctx.fillText(skinNames[i], -154 + MenuOffset, i * 17 + 75)
+			if (i == skinMenuLevel) {
+				ctx.strokeRect(392, i * 17 + 65, 60, 12)
+			}
+			for (let j = 0; j < 2; j++) {
+				ctx.beginPath()
+				ctx.moveTo((-36 * (j == 1)) + (1 + 18 * (j == 0)) + 430, i * 17 + 71)
+				ctx.lineTo((-36 * (j == 1)) + (1 - 18 * (j == 0)) + 448, i * 17 + 75)
+				ctx.lineTo((-36 * (j == 1)) + (1 - 18 * (j == 0))  + 448, i * 17 + 67)
+				ctx.lineTo((-36 * (j == 1)) + (1 + 18 * (j == 0))  + 430, i * 17 + 71)
+				ctx.closePath()
+				ctx.fill()
+			}
+		}
+		if (tick % 4 == 0) {
+			skinMenuLevel += menuJoyY * !((skinMenuLevel == 0 && menuJoyY == -1) || (skinMenuLevel == skinNames.length - 1 && menuJoyY == 1))
+			color[skinMenuLevel] += menuJoyX * !((color[skinMenuLevel] == 0 && menuJoyX == -1) || (color[skinMenuLevel] == playerImages.length - 1 && menuJoyX == 1))
+		}
+
+		if (isKeyPressed('x')) {skinMenu = false}
+	}
 }
 
 
@@ -106,9 +169,9 @@ function playerTick() {
 		if (joyDist > 0) {
 			tryMove(joyX, joyY)
 		}
-		cameraX = player.x * 32 + (player.walkTime * joyX) + (EDITOR* (editorCamSupplement/2));
+		cameraX = player.x * 32 + (player.walkTime * joyX) + (EDITOR* 50) + (MENU * 50);
 		if (cameraX < 0) {cameraX=0}
-		if (cameraX > 422 +(EDITOR*96)-32) {cameraX= 422 +(EDITOR * 100)-32}
+		if (cameraX > 422 + (EDITOR * 96) - 32 + (MENU * 50)) {cameraX = 422 +(EDITOR * 100) - 32 + (MENU * 50)}
 		cameraY = player.y * 32 + ((player.walkTime) * joyY) ;
 		if (cameraY > 724-32) {cameraY=724-32}
 		if (cameraY < 0) {cameraY=0}
@@ -118,21 +181,18 @@ function playerTick() {
 }
 
 function checkForSigns() {
-	if (!MENU && player.signReload == 0) {
-		if (
-			isKeyPressed('z') && 
-			player.dir == 0 && 
-			(GRID[player.currentTile - GMAX] == 7 || GRID[player.currentTile + (GMAX * (GMAX-1)) == 7]) 
-		) 
-		{
-			player.signReload = 10
-			if (GRID[player.currentTile - GMAX] == 7) {newDialogue(DIALOGUES[DialogueLocations.indexOf((player.currentTile - GMAX) + place.full)], tileImages[7])
-			} else {newDialogue(DIALOGUES[DialogueLocations.indexOf((player.currentTile + (GMAX * (GMAX-1))) + place.full)], tileImages[7])}
-			
-			
+	if (player.actionReload !== 0) {
+		player.actionReload-- 
+	} else if (!MENU) {
+		if (isKeyPressed('z')) {		
+			if (GRID[player.currentTile - GMAX] == 7) {
+				newDialogue(player.currentTile - GMAX + place.full, tileImages[7])
+				player.actionReload = 10
+			} else if (GRID[player.currentTile - (GMAX - 1 * GMAX)] == 7) {
+				newDialogue(player.currentTile + (GMAX-1 * GMAX) + place.full, tileImages[7])
+				player.actionReload = 10
+			}
 		}
-	} else {
-		player.signReload--
 	}
 
 }
@@ -172,87 +232,77 @@ function pathIsSolid() {
 }
 
 
-let sx = 0
-let sy = 0
-let sw = 1
-let sh = 1
+let color = [0, 0, 0, 0, 0, 0]
 
 function drawPlayer() {
-	let costume
-
-	if (joyDist > 0) {
-		if (player.frame > 2) {player.frame=1}
-		costume = 'img/player/walk' + player.dir + player.frame + '.png'
-	} else {
-		playerFrame = 1
-		costume = 'img/player/idle' + player.dir + '.png'
+	let playerPrintX = player.x * 32 - cameraX + (canvas.width/2) + (player.walkTime * joyX) - 1
+	let playerPrintY = player.y * 32 - cameraY + (canvas.height/2) + (player.walkTime * joyY) - 7
+	// Left Leg
+	ctx.drawImage(
+		playerImages[color[5]],
+		(player.dir == 90) * 8, 26, 8, 6, 
+		playerPrintX + ((player.dir % 180 == 0) * 1) + ((player.dir == 90) * 6) + ((player.dir == 270) * 4) - 4, 
+		playerPrintY + ((!(player.walkTime % 16 >= 8) && joyDist !== 0) * -2) + 10, 
+		8, 6 
+	)
+	// Right Leg
+	ctx.drawImage(
+		playerImages[color[5]],
+		(player.dir == 270) * -8 + 9, 26, 7, 5, 
+		playerPrintX + ((player.dir == 90) * -3) + ((player.dir == 270) * -5) + 6, 
+		playerPrintY + ((player.walkTime % 16 >= 8 && joyDist !== 0) * -2) + 10, 
+		7, 5
+	)
+	// Head
+	ctx.drawImage(
+		playerImages[color[1]],
+		player.dir / 90 * 18, 0, 18, 11, 
+		playerPrintX - 2, 
+		playerPrintY - 11, 
+		18, 11, 
+	)
+	//player body		
+	ctx.drawImage(
+		playerImages[color[2]],
+		23, 26, 11, 11, 
+		playerPrintX, 
+		playerPrintY, 
+		11, 11
+	)
+	//bag
+	ctx.drawImage(
+		playerImages[color[3]],
+		player.dir / 90 * 18, 17, 18, 7, 
+		playerPrintX - 2, 
+		playerPrintY, 
+		18, 7
+	)
+	if (player.dir % 180 !== 90) {
+	//left hand
+		ctx.drawImage(
+			playerImages[color[4]],
+			60, 26, 4, 4, 
+			playerPrintX - 4, 
+			playerPrintY + ((player.walkTime % 16 >= 8 && joyDist !== 0) * -2) + 4, 
+			4, 4 
+		)
 	}
-
-	if (dialogue) {costume = 'img/player/idle0.png'}
-	//ctx.drawImage(
-	//	playerImages[playerSources.indexOf(costume)], 
-	//	((player.x * 32) - cameraX) + canvas.width/2 - (playerImages[0].width) + (player.walkTime * joyX) + 4, 
-	//	((player.y * 32) - cameraY) + canvas.height/2 - (playerImages[0].height) + (player.walkTime * joyY) - 9,
-	//	(playerImages[0].width*2),
-	//	(playerImages[0].height*2))
-
-		// Left Leg
-		ctx.drawImage(
-			playerImages[12],
-			(player.dir == 90) * 8 + 2, 26, 4, 3, 
-			player.x * 32 - cameraX + (canvas.width/2) + (player.walkTime * joyX) + ((player.dir % 180 == 0) * 1) + ((player.dir == 90) * 4) + ((player.dir == 270) * 3), 
-			player.y * 32 - cameraY + (canvas.height/2) + (player.walkTime * joyY) + ((player.walkTime % 16 <= 7 && joyDist !== 0) * -1) + 10, 
-			4, 5 
-		)
-		// Right Leg
-		ctx.drawImage(
-			playerImages[12],
-			(player.dir == 270) * -8 + 10, 26, 4, 3, 
-			player.x * 32 - cameraX + (canvas.width/2) + (player.walkTime * joyX) + ((player.dir == 90) * -3) + ((player.dir == 270) * -4) + 6, 
-			player.y * 32 - cameraY + (canvas.height/2) + (player.walkTime * joyY) + ((player.walkTime % 16 >= 9) * -1) + ((player.walkTime % 16 >= 7) * -1) + 10, 
-			4, 5
-		)
-		// head
-		ctx.drawImage(
-			playerImages[12],
-			player.dir / 90 * 18, 0, 18, 11, 
-			player.x * 32 - cameraX + (canvas.width/2) + (player.walkTime * joyX) - 2, 
-			player.y * 32 - cameraY + (canvas.height/2) + (player.walkTime * joyY) - 11, 
-			18, 11, 
-		)
-		//player body		
-		ctx.drawImage(
-			playerImages[12],
-			23, 26, 11, 11, 
-			player.x * 32 - cameraX + (canvas.width/2) + (player.walkTime * joyX), 
-			player.y * 32 - cameraY + (canvas.height/2) + (player.walkTime * joyY), 
-			11, 11
-		)
-		//bag
-		ctx.drawImage(
-			playerImages[12],
-			player.dir / 90 * 18, 17, 18, 7, 
-			player.x * 32 - cameraX + (canvas.width/2) + (player.walkTime * joyX) - 2, 
-			player.y * 32 - cameraY + (canvas.height/2) + (player.walkTime * joyY), 
-			18, 7
-		)
-		//left hand
-		ctx.drawImage(
-			playerImages[12],
-			60, 26, 4, 4, 
-			player.x * 32 - cameraX + (canvas.width/2) + (player.walkTime * joyX) + ((player.dir % 180 == 90) * 8) - 4, 
-			player.y * 32 - cameraY + (canvas.height/2) + (player.walkTime * joyY) + 4, 
-			4, 4 
-		)
-		//right hand
-		ctx.drawImage(
-			playerImages[12],
-			60, 26, 4, 4, 
-			player.x * 32 - cameraX + (canvas.width/2) + (player.walkTime * joyX) + ((player.dir % 180 == 90) * -8) + 11, 
-			player.y * 32 - cameraY + (canvas.height/2) + (player.walkTime * joyY) + 4, 
-			4, 4 
-		)
-
+	//right hand
+	ctx.drawImage(
+		playerImages[color[4]],
+		60, 26, 4, 4, 
+		playerPrintX + ((player.dir % 180 == 90) * -7) + 11, 
+		playerPrintY + ((!(player.walkTime % 16 >= 8) && joyDist !== 0) * -2)+ 4, 
+		4, 4 
+	)
+	//Kewl Hat
+	ctx.drawImage(
+		playerImages[color[0]],
+		player.dir / 90 * 18, 12, 18, 4, 
+		playerPrintX - 1 - ((player.dir == 270) * 3) - (player.dir == 0), 
+		playerPrintY - 11, 
+		18, 4 
+	)
 
 	if (tick % 10 === 1) {
 		player.frame++
@@ -382,18 +432,14 @@ function newMap() {
 //====================================================
 
 function editorStuff() {
-	if (isKeyPressed(' ') && (tick % 5 == 0) && !TYPING && !MENU){
-		if (EDITOR) {
-			saveScene()
-			EDITOR = false;
-		} else {
-			EDITOR = true;
-		}
-	}
 	if (EDITOR) {
 		drawEditor()
 		drawPallete()
-		ctx.fillText('Editor Enabled', 10, 20)
+		if (isKeyPressed('x') && !TYPING) {
+			EDITOR = false;
+			saveScene();
+			MENU = true
+		}
 	}
 	if (brushnum < 0 || brushnum > tileImages.length-1) {brushnum = 0}
 }
@@ -417,7 +463,7 @@ function drawEditor() {
 			} 
 			if (brushnum === 7) {
 				DialogueLocations.push(tmp + place.full)
-				DIALOGUES.push('You Saw The Sign!#Did It Open Up Your eyes?#Anyways, the site you\'re on is #cool2themax.github.io!#Tell your friends')
+				DIALOGUES.push('You Saw The Sign!#Did It Open Up Your eyes?#Anyways, the site you\'re on is #cool2themax.github.io!#Tell your friends!')
 			}
 			GRID[tmp] = brushnum
 		}
@@ -544,6 +590,7 @@ function particleStuff(type) {
 
 
 let times = []
+var feedback = []
 
 function fpsStuff() {
 	const now = performance.now();
@@ -551,10 +598,20 @@ function fpsStuff() {
 		times.shift();
 	}
 	times.push(now);
-	if (EDITOR) {
-		ctx.fillStyle = 'black'
-		ctx.fillText('FPS: ' + times.length, 10, 40)
+
+	ctx.fillStyle = 'black'
+	for (let i = 0; i < feedback.length; i++) {
+		ctx.fillText(feedback[i].text, 0,  i * 20 + 20)
+		feedback[i].howLongAgo++
+		if (feedback[i].howLongAgo > 120) {
+			feedback.splice(i, 1)
+		}
 	}
+	if (EDITOR) {
+		ctx.fillText('Editor Enabled. Press [X] to close', 0, feedback.length * 20 + 20)
+	}
+	ctx.fillText('FPS: ' + times.length, 0, feedback.length * 20 + 20 + (EDITOR * 20))
+
 	if (activeTab) {
 		tick++
 	}
