@@ -121,6 +121,7 @@ function drawSubMenu() {
 		for (let i = 0; i < 6; i++) {
 			ctx.fillText(skinNames[i], -154 + MenuOffset, i * 17 + 75)
 			if (i == skinMenuLevel) {
+				ctx.strokeStyle = 'rgb(250, 255, 186)'
 				ctx.strokeRect(392, i * 17 + 65, 60, 12)
 			}
 			for (let j = 0; j < 2; j++) {
