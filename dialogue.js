@@ -23,21 +23,18 @@ function typeText() {
 	let x = 190
 	let y = 210
 	ctx.fillStyle = 'rgb(250, 255, 186)';
-	
+	selectedInputLocation
 	ctx.drawImage(speaker, 80, 200, 96, 96)
-	if (EDITOR && !(letter == text.length + 1) && (!TYPING)) {
+	if (EDITOR && !(letter == text.length + 1) && !TYPING) {
 		alreadyPrinted = text
 		letter = text.length + 1
 		TYPING = true
+		
 		typedInputBox.style.display = 'block'
+		typedInputBox.value = text
 		document.getElementById("submitButton").style.display = 'block'
 		return;
-	}
-	if (typedInput !== '') {
-		DIALOGUES[DIALOGUES.indexOf(text)] = typedInput
-		typedInput = ''
-	}
-	
+	}	
 	for (let i = 0; i < alreadyPrinted.length; i++) {
 		if ((!(alreadyPrinted.charAt(i) == '#' || alreadyPrinted.charAt(i) == '/')|| textSkipNext)) {
 				textSkipNext = false
@@ -72,18 +69,21 @@ function typeText() {
 	}
 }
 
-function newDialogue(newText, newSpeaker) {
+
+function newDialogue(textLocationI, newSpeaker) {
 	dialogue = true;
 	if (typeof newText === 'object') {
 		textMultipleNum++
 		text = newText[textMultipleNum]
 		textMultiple = true
 	}
-	text = newText;
+	
+	selectedInputLocation = textLocationI
+	text = DIALOGUES[DialogueLocations.indexOf(textLocationI)]
 	speaker = newSpeaker;
 	alreadyPrinted = "";
 	letter = 1;
-	dialogueStuff()
+	//dialogueStuff()
 }
 
 
