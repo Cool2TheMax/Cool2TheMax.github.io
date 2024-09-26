@@ -15,6 +15,9 @@ var mouseDown = false;
 var activeTab = true;
 var tick = 0;
 
+var STOP = false;
+var MENU = false;
+
 var player = {
 	x : 3,
 	y : 3,
@@ -24,8 +27,10 @@ var player = {
 	walkTime : 0,
 	walkDelay : 32,
 	currentTile : 0,
-	signReload : 0
+	zHeldDown : false
 }
+
+var zLastTurn = false
 
 var cameraY;
 var cameraX;
@@ -121,19 +126,8 @@ function randInt(min, max) {
 const playerImages = [];
 
 const playerSources = [
-	'img/player/walk01.png',
-	'img/player/walk02.png',
-	'img/player/idle0.png',
-	'img/player/idle90.png',
-	'img/player/walk901.png',
-	'img/player/walk902.png',
-	'img/player/idle180.png',
-	'img/player/walk1801.png',
-	'img/player/walk1802.png',
-	'img/player/idle270.png',
-	'img/player/walk2701.png',
-	'img/player/walk2702.png',
-	'img/player/spritesheet2Enhanced.png'
+	'img/player/p1.png',
+	'img/player/p2.png'
 ]
 
 for (let i = 0; i < playerSources.length; i++) {
@@ -176,9 +170,13 @@ for (let i = 0; i < UISources.length; i++) {
 	UIImages.push(img);
 }
 
+var selectedInputLocation
+
 function typedAnswerSubmit() {
 	typedInput = typedInputBox.value
 	typedInputBox.style.display = 'none'
 	document.getElementById("submitButton").style.display = 'none'
 	TYPING = false
+	feedback.push({text: 'Text Recorded In Sign', howLongAgo : 0})
+	DIALOGUES[DialogueLocations.indexOf(selectedInputLocation)] = typedInput
 }
