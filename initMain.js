@@ -27,7 +27,8 @@ var player = {
 	walkTime : 0,
 	walkDelay : 32,
 	currentTile : 0,
-	zHeldDown : false
+	zHeldDown : false,
+	actionReload: 0
 }
 
 var zLastTurn = false
