@@ -6,6 +6,45 @@ function start() {
 }
 
 function gameLoop() {
+	playerTick()
+	drawBackground();
+	drawTiles(1);
+	drawTiles(2);
+	particleStuff('spark')
+	drawPlayer();
+	
+	particleStuff('smoke');
+	if (dialogue) {
+		dialogueStuff();
+	} else {
+		editorStuff();
+		menuStuff();
+		inventoryStuff();
+	}
+	
+	fpsStuff();
+	fadeStuff()
+	
+	if (STOP) {return true;} 
+	requestAnimationFrame(gameLoop);
+}
+
+
+
+
+
+//PLAYER STUFF
+//==============================================================
+//==============================================================
+
+let editorCamSupplement = 100;
+
+let playerXSup = 9;
+let playerYSup = 4;
+
+
+function playerTick() {
+	place.full = place.name + '.' + place.x + '.' + place.y
 	if (isKeyPressed('z')) {
 		player.zHeldDown = zLastTurn
 		zLastTurn = true	
@@ -13,149 +52,6 @@ function gameLoop() {
 		player.zHeldDown = false
 		zLastTurn = false
 	}
-	playerTick()
-	drawBackground();
-	drawTiles(1);
-	drawTiles(2);
-	particleStuff('spark')
-	drawPlayer();
-	drawTiles(3)
-	
-	particleStuff('smoke')
-	if (dialogue) {
-		dialogueStuff()
-	} else {
-		editorStuff()
-		menuStuff()
-	}
-
-	fpsStuff()
-
-	if (STOP) {return true;} 
-	requestAnimationFrame(gameLoop)
-}
-
-
-var skinMenu = false
-var menuLevel = 0;
-const MenuItems = ['Inventory', 'Save', 'Skins', 'EDITOR', 'Exit']
-const MenuFunctions = [
-		function() {feedback.push({text : 'WIP: Inventory is work in progress', howLongAgo : 0})}, 
-		function() {
-			saveScene()
-			feedback.push({text : 'WIP: Saving is work in progress', howLongAgo : 0})
-		},
-		function () {
-			skinMenu = true
-		},
-		function () {
-			MENU = false;
-			EDITOR = true;
-		},
-		function() {MENU = false}
-	]
-
-let menuJoyX
-let menuJoyY
-function menuStuff() {
-	if (isKeyPressed('Enter') && !EDITOR && !dialogue && tick % 10 == 0) {
-		if (!MENU) {
-			MENU = true;
-			menuLevel = 0;
-		}
-	}
-	if (MENU) {
-		if (tick % 4 == 0){
-			menuJoyY = (isKeyPressed('s') || isKeyPressed('ArrowDown'))
-			menuJoyY -= (isKeyPressed('w') || isKeyPressed('ArrowUp'))
-			menuJoyX = (isKeyPressed('d') || isKeyPressed('ArrowRight'))
-			menuJoyX -= (isKeyPressed('a') || isKeyPressed('ArrowLeft'))
-			if (!skinMenu) {
-				menuLevel += menuJoyY * !((menuLevel == 0 && menuJoyY == -1) || (menuLevel == MenuItems.length - 1 && menuJoyY == 1))
-			}
-		}
-		if (isKeyPressed('z') && !player.zHeldDown) {MenuFunctions[menuLevel]()}
-		drawSubMenu()
-		drawMenu()
-	}
-}
-
-var MenuOffset = 460
-
-function drawMenu() {
-
-	ctx.fillStyle = 'rgb(43, 43, 43)'
-	ctx.fillRect(10 + MenuOffset, 10, 120, 200)
-	ctx.fillStyle = 'rgb(250, 255, 186)'				
-	for (let i = 0; i < MenuItems.length; i++) {
-		ctx.fillText(MenuItems[i], 16 + MenuOffset, i * 17 + 32)
-	}
-
-	ctx.beginPath()
-	ctx.moveTo(110 + MenuOffset, menuLevel * 17 + 28)
-	ctx.lineTo(128 + MenuOffset, menuLevel * 17 + 35)
-	ctx.lineTo(128 + MenuOffset, menuLevel * 17 + 21)
-	ctx.lineTo(110 + MenuOffset, menuLevel * 17 + 28)
-	ctx.closePath()
-	ctx.fill()
-}
-
-let skinNames = [
-	'Cap',
-	'Attitude',
-	'Shirt',
-	'Satchel', 
-	'Hands',
-	'Shoes'
-]
-
-let skinMenuLevel = 0
-var m = 0
-var x = 0
-
-function drawSubMenu() {
-	if (skinMenu) {
-		ctx.fillStyle = 'rgb(43, 43, 43)'
-		ctx.fillRect(-160 + MenuOffset, 53, 165, 120)
-		ctx.fillStyle = 'rgb(250, 255, 186)'
-		for (let i = 0; i < 6; i++) {
-			ctx.fillText(skinNames[i], -154 + MenuOffset, i * 17 + 75)
-			if (i == skinMenuLevel) {
-				ctx.strokeStyle = 'rgb(250, 255, 186)'
-				ctx.strokeRect(392, i * 17 + 65, 60, 12)
-			}
-			for (let j = 0; j < 2; j++) {
-				ctx.beginPath()
-				ctx.moveTo((-36 * (j == 1)) + (1 + 18 * (j == 0)) + 430, i * 17 + 71)
-				ctx.lineTo((-36 * (j == 1)) + (1 - 18 * (j == 0)) + 448, i * 17 + 75)
-				ctx.lineTo((-36 * (j == 1)) + (1 - 18 * (j == 0))  + 448, i * 17 + 67)
-				ctx.lineTo((-36 * (j == 1)) + (1 + 18 * (j == 0))  + 430, i * 17 + 71)
-				ctx.closePath()
-				ctx.fill()
-			}
-		}
-		if (tick % 4 == 0) {
-			skinMenuLevel += menuJoyY * !((skinMenuLevel == 0 && menuJoyY == -1) || (skinMenuLevel == skinNames.length - 1 && menuJoyY == 1))
-			color[skinMenuLevel] += menuJoyX * !((color[skinMenuLevel] == 0 && menuJoyX == -1) || (color[skinMenuLevel] == playerImages.length - 1 && menuJoyX == 1))
-		}
-
-		if (isKeyPressed('x')) {skinMenu = false}
-	}
-}
-
-
-//PLAYER STUFF
-//==============================================================
-//==============================================================
-
-let editorCamSupplement = 100
-
-let playerXSup = 9
-let playerYSup = 4
-
-
-function playerTick() {
-	place.full = place.name + '.' + place.x + '.' + place.y
 	if (!dialogue && !TYPING) {
 		player.currentTile = player.x + playerXSup + ((player.y + playerYSup) * 32)
 		if (!(player.walkTime > 0 && player.walkTime < player.walkDelay)) {
@@ -170,29 +66,91 @@ function playerTick() {
 		if (joyDist > 0) {
 			tryMove(joyX, joyY)
 		}
-		cameraX = player.x * 32 + (player.walkTime * joyX) + (EDITOR* 50) + (MENU * 50);
-		if (cameraX < 0) {cameraX=0}
-		if (cameraX > 422 + (EDITOR * 96) - 32 + (MENU * 50)) {cameraX = 422 +(EDITOR * 100) - 32 + (MENU * 50)}
-		cameraY = player.y * 32 + ((player.walkTime) * joyY) ;
-		if (cameraY > 724-32) {cameraY=724-32}
-		if (cameraY < 0) {cameraY=0}
+		cameraStuff()
 		playerCheckOutOfBounds()
-		checkForSigns()
+		if (player.actionReload !== 0) {
+			player.actionReload--
+		} else {
+			checkForSigns()
+			checkForChests()
+		}
 	}
 }
 
-function checkForSigns() {
-	if (player.actionReload !== 0) {
-		player.actionReload-- 
-	} else if (!MENU) {
-		if (isKeyPressed('z')) {		
-			if (GRID[player.currentTile - GMAX] == 7) {
-				newDialogue(player.currentTile - GMAX + place.full, tileImages[7])
-				player.actionReload = 10
-			} else if (GRID[player.currentTile - (GMAX - 1 * GMAX)] == 7) {
-				newDialogue(player.currentTile + (GMAX-1 * GMAX) + place.full, tileImages[7])
-				player.actionReload = 10
+
+
+var inven = ['gold coin', 'sword', 'healing potion']
+var invenNums = [23, 1, 2]
+var Inventory = false
+let itemGained
+let itemAmount
+
+const itemLoc = []
+const itemLocItem = []
+const loottable = ['gold coin', 'healing potion']
+const ltgainranges = [[1 , 3], [1, 1]]
+
+
+function checkForChests() {
+	if (!MENU && !TYPING && player.dir == 0) {
+		if (player.chestBeingOpened) {
+			player.chestFrameTimer++
+			let i = player.chestFrameTimer
+			if (i == 10) {
+				player.chestFrameTimer = 0
+				player.chestBeingOpened = false
 			}
+		} 
+
+		if (!player.chestBeingOpened && isKeyPressed('z') && GRID[player.currentTile - GMAX] == 8) {
+			if (EDITOR && !TYPING) {
+				selectedArray = null
+				selectedInputLocation = player.currentTile - GMAX + place.full
+				TYPING = true
+				typedInputBox.style.display = 'block'
+				typedInputBox.value = text
+				document.getElementById("submitButton").style.display = 'block'
+				return;
+			}
+			if (itemLoc.indexOf(player.currentTile - GMAX + place.full) !== -1) {
+				itemGained = itemLocItem[itemLoc.indexOf(player.currentTile - GMAX + place.full)]
+				itemAmount = 1
+			} else {
+				let itemIdx = randInt(0, loottable.length-1)
+				itemGained = loottable[itemIdx]
+				itemAmount = randInt(ltgainranges[itemIdx][0], ltgainranges[itemIdx][1])
+			}
+			newDialogue('You got...                #', tileImages[8])
+			text = text + ((itemAmount == 1) ? ('A ' + itemGained + '!#The ' + itemGained + ' was') : (itemAmount + ' ' + itemGained + 's!#The ' + itemGained + 's were')) + ' put in your#bag.'
+
+			if (inven.indexOf(itemGained) == -1) {
+				inven.push(itemGained)
+				invenNums.push(itemAmount)
+			} else {
+				invenNums[inven.indexOf(itemGained)] += itemAmount
+			}
+			GRID[player.currentTile - GMAX] = 9
+			player.chestBeingOpened = true
+			player.actionReload = 10
+		}
+	}
+}
+
+function cameraStuff() {
+	cameraX = player.x * 32 + (player.walkTime * joyX) + (EDITOR* 50) + (MENU * 50);
+	if (cameraX < 0) {cameraX=0}
+	if (cameraX > 422 + (EDITOR * 96) - 32 + (MENU * 50)) {cameraX = 422 +(EDITOR * 100) - 32 + (MENU * 50)}
+	cameraY = player.y * 32 + ((player.walkTime) * joyY);
+	if (cameraY > 724-32) {cameraY=724-32}
+	if (cameraY < 0) {cameraY=0}
+}
+
+
+function checkForSigns() {
+	if (!MENU && isKeyPressed('z') && player.dir == 0 && !player.zHeldDown) {	
+		if (GRID[player.currentTile - GMAX] == 7) {
+			newDialogue(player.currentTile - GMAX + place.full, tileImages[7])
+			player.actionReload = 10
 		}
 	}
 
@@ -233,14 +191,16 @@ function pathIsSolid() {
 }
 
 
-let color = [0, 0, 0, 0, 0, 0]
+let color = 0
+let playerPrintX
+let playerPrintY
 
 function drawPlayer() {
-	let playerPrintX = player.x * 32 - cameraX + (canvas.width/2) + (player.walkTime * joyX) - 1
-	let playerPrintY = player.y * 32 - cameraY + (canvas.height/2) + (player.walkTime * joyY) - 7
+	playerPrintX = player.x * 32  + (canvas.width / 2)  - cameraX + (player.walkTime * joyX) - 1
+	playerPrintY = player.y * 32  + (canvas.height / 2) - cameraY + (player.walkTime * joyY) - 14
 	// Left Leg
 	ctx.drawImage(
-		playerImages[color[5]],
+		playerImages[color],
 		(player.dir == 90) * 8, 26, 8, 6, 
 		playerPrintX + ((player.dir % 180 == 0) * 1) + ((player.dir == 90) * 6) + ((player.dir == 270) * 4) - 4, 
 		playerPrintY + ((!(player.walkTime % 16 >= 8) && joyDist !== 0) * -2) + 10, 
@@ -248,7 +208,7 @@ function drawPlayer() {
 	)
 	// Right Leg
 	ctx.drawImage(
-		playerImages[color[5]],
+		playerImages[color],
 		(player.dir == 270) * -8 + 9, 26, 7, 5, 
 		playerPrintX + ((player.dir == 90) * -3) + ((player.dir == 270) * -5) + 6, 
 		playerPrintY + ((player.walkTime % 16 >= 8 && joyDist !== 0) * -2) + 10, 
@@ -256,7 +216,7 @@ function drawPlayer() {
 	)
 	// Head
 	ctx.drawImage(
-		playerImages[color[1]],
+		playerImages[color],
 		player.dir / 90 * 18, 0, 18, 11, 
 		playerPrintX - 2, 
 		playerPrintY - 11, 
@@ -264,7 +224,7 @@ function drawPlayer() {
 	)
 	//player body		
 	ctx.drawImage(
-		playerImages[color[2]],
+		playerImages[color],
 		23, 26, 11, 11, 
 		playerPrintX, 
 		playerPrintY, 
@@ -272,7 +232,7 @@ function drawPlayer() {
 	)
 	//bag
 	ctx.drawImage(
-		playerImages[color[3]],
+		playerImages[color],
 		player.dir / 90 * 18, 17, 18, 7, 
 		playerPrintX - 2, 
 		playerPrintY, 
@@ -281,7 +241,7 @@ function drawPlayer() {
 	if (player.dir % 180 !== 90) {
 	//left hand
 		ctx.drawImage(
-			playerImages[color[4]],
+			playerImages[color],
 			60, 26, 4, 4, 
 			playerPrintX - 4, 
 			playerPrintY + ((player.walkTime % 16 >= 8 && joyDist !== 0) * -2) + 4, 
@@ -290,7 +250,7 @@ function drawPlayer() {
 	}
 	//right hand
 	ctx.drawImage(
-		playerImages[color[4]],
+		playerImages[color],
 		60, 26, 4, 4, 
 		playerPrintX + ((player.dir % 180 == 90) * -7) + 11, 
 		playerPrintY + ((!(player.walkTime % 16 >= 8) && joyDist !== 0) * -2)+ 4, 
@@ -298,7 +258,7 @@ function drawPlayer() {
 	)
 	//Kewl Hat
 	ctx.drawImage(
-		playerImages[color[0]],
+		playerImages[color],
 		player.dir / 90 * 18, 12, 18, 4, 
 		playerPrintX - 1 - ((player.dir == 270) * 3) - (player.dir == 0), 
 		playerPrintY - 11, 
@@ -367,6 +327,9 @@ function drawBackground() {
 	ctx.drawImage(UIImages[0], -((cameraX % 32)+32) + UIImages[0].width, -((cameraY % 32)+32) + UIImages[0].height);
 }
 
+let cx = 0
+let cy = 0
+
 function drawTiles(lay) {
 	let gidx = Math.floor(cameraX / 32) + ((lay-1)*GMAX*GMAX)
 	gidx += GMAX * Math.floor(cameraY / 32)
@@ -422,13 +385,13 @@ function newMap() {
 	for (let i = 0; i < GMAX-1; i++) {
 		GRID.push(2)
 	}
-	for (let i = 0; i < (GMAX*GMAX)*2+(GMAX+1); i++) {
+	for (let i = 0; i < (GMAX+1) * GMAX; i++) {
 		GRID.push(0)
 	}
 
 }
 
-//EDITOR STUFF
+//EDITOR
 //====================================================
 //====================================================
 
@@ -457,14 +420,18 @@ function drawEditor() {
 		ctx.strokeRect((gx*32)-cameraX, (gy*32)-cameraY, 32, 32)
 		let tmp = gidx + ((LAYER-1)*(GMAX*GMAX))
 		if (mouseDown && checkMouseBounds(true)) {
-			if (tileSources[GRID[tmp]] === 'img/tiles/tile5.png') {
+			if (GRID[tmp] == 7) {
 				tmp2 = DialogueLocations.indexOf(tmp + place.full)
 				DIALOGUES.splice(tmp2, 1)
 				DialogueLocations.splice(tmp2, 1)
 			} 
-			if (brushnum === 7) {
+			if (brushnum == 7) {
 				DialogueLocations.push(tmp + place.full)
-				DIALOGUES.push('You Saw The Sign!#Did It Open Up Your eyes?#Anyways, the site you\'re on is #cool2themax.github.io!#Tell your friends!')
+				DIALOGUES.push("~iThis~b string is a test of bold text and ~iitalic ~btext. How well does it wrap?")//'You Saw The Sign! Did It Open Up Your eyes? Anyways, the site you\'re on is cool2themax.github.io! Tell your friends!')
+			} else if (GRID[tmp] == 8 && itemLoc.indexOf(tmp + place.full) !== -1) {
+				tmp2 = itemLoc.indexOf(tmp + place.full)
+				itemLoc.splice(tmp2, 1)
+				itemLocItem.splice(tmp2, 1)
 			}
 			GRID[tmp] = brushnum
 		}
@@ -517,7 +484,7 @@ function drawPallete(){
 
 
 
-//PARTICLES
+//EFFECTS
 //===========================================================
 //===========================================================
 
@@ -582,6 +549,205 @@ function particleStuff(type) {
 			}
 		}
 	}
+}
+
+
+let fadeDuration = 60
+let fadeTime = 0
+let fade = false
+let safeShowMenu = false
+
+function fadeStuff() {
+	if (fade) {
+	fadeTime++
+		ctx.fillStyle = 'rgba(0, 0, 0, ' + (Math.max(0, Math.min(1, -Math.pow((fadeTime - fadeDuration / 2) / (fadeDuration / 2), 2) + 1))) + ')'
+		ctx.fillRect(0, 0, 600, 300)
+		if (fadeTime >= fadeDuration) {
+			fade = false
+			fadeTime = 0
+		} 
+		if (1 == (Math.max(0, Math.min(1, -Math.pow((fadeTime - fadeDuration / 2) / (fadeDuration / 2), 2) + 1)))) {
+			if (safeShowMenu) {safeShowMenu = false; Inventory = false} else (safeShowMenu = true)
+		}
+	}
+}
+
+function startFade() {
+	fade = true
+	fadeTime = 0
+}
+
+function drawTriangle(dir, x, y) {
+	ctx.beginPath()
+	ctx.moveTo(19 + x, 8 + y)
+	ctx.lineTo(0 + x, 16 + y)
+	ctx.lineTo(0 + x, 0 + y)
+	ctx.lineTo(19 + x, 8 + y)
+	ctx.closePath()
+	ctx.fill()
+}
+
+//MENU
+//===========================================================
+//===========================================================
+
+var skinMenu = false
+var menuLevel = 0;
+const MenuItems = ['Inventory', 'Save', 'Skins', 'EDITOR', 'Exit']
+const MenuFunctions = [
+		function() {
+			feedback.push({text : 'WIP: Inventory is work in progress', howLongAgo : 0})
+			Inventory = true
+			invLevel = 0
+			invScroll = 0
+			startFade();
+		}, 
+		function() {
+			saveScene()
+			feedback.push({text : 'WIP: Saving is work in progress', howLongAgo : 0})
+		},
+		function () {
+			skinMenu = true
+		},
+		function () {
+			MENU = false;
+			EDITOR = true;
+		},
+
+		function() {MENU = false}
+	]
+
+let menuJoyX
+let menuJoyY
+function menuStuff() {
+	if (isKeyPressed('f') && !EDITOR && !Inventory && !dialogue && tick % 10 == 0) {
+		if (!MENU) {
+			MENU = true;
+			menuLevel = 0;
+		}
+	}
+	if (MENU) {
+		if (tick % 4 == 0){
+			menuJoyY = (isKeyPressed('s') || isKeyPressed('ArrowDown'))
+			menuJoyY -= (isKeyPressed('w') || isKeyPressed('ArrowUp'))
+			menuJoyX = (isKeyPressed('d') || isKeyPressed('ArrowRight'))
+			menuJoyX -= (isKeyPressed('a') || isKeyPressed('ArrowLeft'))
+			if (!skinMenu && !Inventory) {
+				menuLevel += menuJoyY * !((menuLevel == 0 && menuJoyY == -1) || (menuLevel == MenuItems.length - 1 && menuJoyY == 1))
+			}
+		}
+		if (isKeyPressed('x') && !Inventory) {MenuFunctions[MenuFunctions.length-1]()}
+		if (isKeyPressed('z') && !player.zHeldDown && !Inventory) {MenuFunctions[menuLevel]()}
+		drawSubMenu()
+		drawMenu()
+	}
+}
+
+var MenuOffset = 470
+
+function drawMenu() {
+
+	ctx.fillStyle = 'rgb(43, 43, 43)'
+	ctx.fillRect(MenuOffset, 10, 120, 200)
+	ctx.fillStyle = 'rgb(250, 255, 186)'				
+	for (let i = 0; i < MenuItems.length; i++) {
+		ctx.fillText(MenuItems[i], 6 + MenuOffset, i * 17 + 32)
+	}
+
+	ctx.beginPath()
+	ctx.moveTo(100 + MenuOffset, menuLevel * 17 + 28)
+	ctx.lineTo(118 + MenuOffset, menuLevel * 17 + 35)
+	ctx.lineTo(118 + MenuOffset, menuLevel * 17 + 21)
+	ctx.lineTo(100 + MenuOffset, menuLevel * 17 + 28)
+	ctx.closePath()
+	ctx.fill()
+}
+
+
+var skinMenuWidth = 75
+
+function drawSubMenu() {
+	let Where = MenuOffset - skinMenuWidth - 10
+	if (skinMenu) {
+		ctx.fillStyle = 'rgb(43, 43, 43)'
+		ctx.fillRect(Where, 53, skinMenuWidth, 85)
+		ctx.fillStyle = 'rgb(250, 255, 186)'
+		ctx.fillText('Current', Where + (skinMenuWidth / 2) - ('Current'.length * 10 / 2), 75)
+		ctx.fillText('Skin', Where + (skinMenuWidth / 2) - ('Skin'.length * 10 / 2), 75 + 17)
+		ctx.fillText(color, Where + (skinMenuWidth / 2) - (color.toString().length * 10 / 2), 17 * 2 + 75)
+		for (let j = 0; j < 2; j++) {
+			ctx.beginPath()
+			ctx.moveTo((-36 * (j == 1)) + (1 + 18 * (j == 0))  + Where + 46,  17 * 3 + 71)
+			ctx.lineTo((-36 * (j == 1)) + (1 - 18 * (j == 0)) + Where + 64,  17 * 3 + 79)
+			ctx.lineTo((-36 * (j == 1)) + (1 - 18 * (j == 0))  + Where + 64, 17 * 3 + 63)
+			ctx.lineTo((-36 * (j == 1)) + (1 + 18 * (j == 0))  + Where + 46, 17 * 3 + 71)
+			ctx.closePath()
+			ctx.fill()
+		}
+		if (tick % 4 == 0) {
+			color += menuJoyX * !((color == 0 && menuJoyX == -1) || (color == playerImages.length - 1 && menuJoyX == 1))
+		}
+
+		if (isKeyPressed('x')) {skinMenu = false}
+	}
+}
+
+var invLevel = 0
+var invScroll = 0
+var invSub = false
+var invSubSel = 0
+var invSubAllow = 0
+var invSubFuncs = [
+	function(i) {inven.splice(i, 1); invenNums.splice(i, 1)},
+	function() {invSub = false}
+]
+
+
+function inventoryStuff() {
+	if (Inventory && safeShowMenu) {
+		ctx.drawImage(UIImages[2], 0, 0, 600, 300)
+		ctx.fillStyle = 'black'
+		if (tick % 5 == 0 && !invSub) {
+			invLevel += menuJoyY * !((invLevel == 0 && menuJoyY == -1) || (invLevel == inven.length && menuJoyY == 1))
+
+			if (menuJoyY == -1 && invLevel >= 0) {
+				if (invLevel < invScroll) {
+					invScroll--
+				}
+			}
+			if (menuJoyY == 1 && invLevel < inven.length + 1) {
+				if (invLevel >= invScroll + 11) {
+					invScroll++
+				}
+			}
+			if (isKeyPressed('z') && invLevel !== inven.length && invSubAllow == 0) {
+				invSub = true
+				invSubAllow++
+			}
+		}
+		drawTriangle(null, 221, ((invLevel - invScroll) * 20) + 64)
+		for (i = 0; i < 11; i++) {
+			if (inven[i + invScroll] !== undefined) {
+				ctx.fillText(inven[i + invScroll].toLocaleUpperCase(), (i == invLevel - invScroll) * 20 + 222, i * 20 + 78)
+				ctx.fillText( 'x' + invenNums[i + invScroll],  580 - ((invenNums[i + invScroll].toString().length + 1) * 10), i * 20 + 78)
+			} else if (inven[i + invScroll - 1] !== undefined || inven.length == 0 && i == 0) {
+				ctx.fillText('CLOSE BAG', (i == invLevel - invScroll) * 20 + 222, i * 20 + 78)
+			}
+		}
+		if (invSub) {
+			drawTriangle(null, 22, invSubSel * 17 + 187)
+			ctx.fillText('TOSS', 42, 200)
+			ctx.fillText('EXIT', 42, 217)
+			invSubSel += menuJoyY * !((invSubSel == 0 && menuJoyY == -1) || (invSubSel == invSubFuncs.length - 1 && menuJoyY == 1))
+			if (!isKeyPressed('z') && invSubAllow !== 2) {invSubAllow++}
+			if (isKeyPressed('z') && invSubAllow == 2) {invSubFuncs[invSubSel](invLevel); invSub = false; invSubAllow++}
+		}
+		if (invSubAllow == 3 && !isKeyPressed('z')) {invSubAllow = 0}
+		if ((isKeyPressed('x') || isKeyPressed('z') && invLevel == inven.length) && fadeTime == 0 && !invSub) {
+			startFade();
+		}
+	}
+
 }
 
 
