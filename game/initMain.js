@@ -8,7 +8,7 @@ ctx.imageSmoothingEnabled = false
 let DIALOGUES = []
 let DialogueLocations = []
 
-var solids = [false, false, true, true, true, true, true, true]
+var solids = [false, false, true, true, true, true, true, true, true, true]
 var mouseX;
 var mouseY;
 var mouseDown = false;
@@ -28,7 +28,9 @@ var player = {
 	walkDelay : 32,
 	currentTile : 0,
 	zHeldDown : false,
-	actionReload: 0
+	actionReload : 0,
+	chestFrameTimer : 0,
+	chestBeingOpened : false
 }
 
 var zLastTurn = false
@@ -128,7 +130,8 @@ const playerImages = [];
 
 const playerSources = [
 	'img/player/p1.png',
-	'img/player/p2.png'
+	'img/player/p2.png',
+	'img/player/p3.png'
 ]
 
 for (let i = 0; i < playerSources.length; i++) {
@@ -147,7 +150,9 @@ const tileSources = [
 	'img/tiles/tile4f1.png',
 	'img/tiles/tile4f2.png',
 	'img/tiles/tile4f3.png',
-	'img/tiles/tile5.png'
+	'img/tiles/tile5.png',
+	'img/tiles/tile6f0.png',
+	'img/tiles/tile6f1.png'
 ]
 
 for (let i = 0; i < tileSources.length; i++) {
@@ -161,7 +166,8 @@ const UIImages = [];
 const UISources = [
 	'img/UI/background.bmp',
 	'img/UI/blank.bmp',
-	'img/UI/inventoryBack.png'
+	'img/UI/inventoryBack.png',
+	'img/UI/sword.png'
 	
 ]
 
@@ -171,7 +177,22 @@ for (let i = 0; i < UISources.length; i++) {
 	UIImages.push(img);
 }
 
+const enemyImages = [];
+
+const enemySources = [
+	'img/enemies/spooksheet.png',
+	'img/enemies/slimesheet.png'
+]
+
+for (let i = 0; i < enemySources.length; i++) {
+	const img = new Image();
+	img.src = enemySources[i];
+	enemyImages.push(img);
+}
+
+
 var selectedInputLocation
+var selectedArray
 
 function typedAnswerSubmit() {
 	typedInput = typedInputBox.value
@@ -179,5 +200,9 @@ function typedAnswerSubmit() {
 	document.getElementById("submitButton").style.display = 'none'
 	TYPING = false
 	feedback.push({text: 'Text Recorded In Sign', howLongAgo : 0})
-	DIALOGUES[DialogueLocations.indexOf(selectedInputLocation)] = typedInput
+	if (selectedArray == 'd') {
+		DIALOGUES[DialogueLocations.indexOf(selectedInputLocation)] = typedInput
+	} else {
+		itemLocItem[itemLoc.indexOf(selectedInputLocation)] = typedInput
+	}
 }
