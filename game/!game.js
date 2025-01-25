@@ -120,8 +120,8 @@ function checkForChests() {
 				itemGained = loottable[itemIdx]
 				itemAmount = randInt(ltgainranges[itemIdx][0], ltgainranges[itemIdx][1])
 			}
-			newDialogue('You got...                #', tileImages[8])
-			text = text + ((itemAmount == 1) ? ('A ' + itemGained + '!#The ' + itemGained + ' was') : (itemAmount + ' ' + itemGained + 's!#The ' + itemGained + 's were')) + ' put in your#bag.'
+			newDialogue('You got... ', tileImages[8])
+			text = text + ((itemAmount == 1) ? ('A ' + itemGained + '! The ' + itemGained + ' was') : (itemAmount + ' ' + itemGained + 's! The ' + itemGained + 's were')) + ' put in your bag.'
 
 			if (inven.indexOf(itemGained) == -1) {
 				inven.push(itemGained)
@@ -620,7 +620,7 @@ const MenuFunctions = [
 let menuJoyX
 let menuJoyY
 function menuStuff() {
-	if (isKeyPressed('f') && !EDITOR && !Inventory && !dialogue && tick % 10 == 0) {
+	if (isKeyPressed('Enter') && !EDITOR && !Inventory && !dialogue && tick % 10 == 0) {
 		if (!MENU) {
 			MENU = true;
 			menuLevel = 0;
