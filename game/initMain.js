@@ -8,7 +8,7 @@ ctx.imageSmoothingEnabled = false
 let DIALOGUES = []
 let DialogueLocations = []
 
-var solids = [false, false, true, true, true, true, true, true, true, true]
+var solids = [false, false, true, true, true, true, true, true, true, true, false]
 var mouseX;
 var mouseY;
 var mouseDown = false;
@@ -22,15 +22,15 @@ var player = {
 	x : 3,
 	y : 3,
 	speed : 1,
-	dir : 180,
+	dir : 0,
 	frame : 1,
 	walkTime : 0,
 	walkDelay : 32,
+	isSprinting : false,
 	currentTile : 0,
 	zHeldDown : false,
 	actionReload : 0,
-	chestFrameTimer : 0,
-	chestBeingOpened : false
+	actionTile : 0
 }
 
 var zLastTurn = false
@@ -78,9 +78,9 @@ window.addEventListener('mousemove', function (e) {
 function checkMouseBounds(def, x1, y1, x2, y2) {
 	if (def) {
 		if (mouseX < 0) {return false}
-		if (mouseX > 600) {return false}
+		if (mouseX > 640) {return false}
 		if (mouseY < 0) {return false}
-		if (mouseY > 300) {return false}
+		if (mouseY > 360) {return false}
 	} else {
 		if (mouseX < x1) {return false}
 		if (mouseX > x2) {return false}
@@ -141,19 +141,10 @@ for (let i = 0; i < playerSources.length; i++) {
 }
 
 const tileImages = [];
+const tileSources = ['img/tiles/tileMap.png']
+const tileMapWidth = 4
 
-const tileSources = [
-	'img/tiles/tile1.bmp',
-	'img/tiles/tile2.png',
-	'img/tiles/tile3.png',
-	'img/tiles/tile4f0.png',
-	'img/tiles/tile4f1.png',
-	'img/tiles/tile4f2.png',
-	'img/tiles/tile4f3.png',
-	'img/tiles/tile5.png',
-	'img/tiles/tile6f0.png',
-	'img/tiles/tile6f1.png'
-]
+
 
 for (let i = 0; i < tileSources.length; i++) {
 	const img = new Image();
@@ -161,14 +152,25 @@ for (let i = 0; i < tileSources.length; i++) {
 	tileImages.push(img);
 }
 
+function printTileImgFromMap(type, tileID, x, y, width, height) {
+	let mapX = ((tileID % tileMapWidth)) * 16
+	let mapY = ((tileID - (tileID % tileMapWidth)) / tileMapWidth) * 16
+	if (type == 'tile') {
+		var image = tileImages[0]
+	} else if (type == 'item'){
+		var image = UIImages[3]
+	}
+	ctx.drawImage(image, mapX, mapY, 16, 16, x, y, width, height)
+
+}
+
 const UIImages = [];
 
 const UISources = [
-	'img/UI/background.bmp',
+	'img/UI/background.png',
 	'img/UI/blank.bmp',
 	'img/UI/inventoryBack.png',
-	'img/UI/sword.png'
-	
+	'img/UI/items.png'
 ]
 
 for (let i = 0; i < UISources.length; i++) {
@@ -177,17 +179,24 @@ for (let i = 0; i < UISources.length; i++) {
 	UIImages.push(img);
 }
 
-const enemyImages = [];
+const NPCImages = [];
 
-const enemySources = [
-	'img/enemies/spooksheet.png',
-	'img/enemies/slimesheet.png'
+const NPCSources = [
+	'img/NPC/character1.png',
+	'img/NPC/character1walk.png',
+	'img/NPC/character1head.png',
+	'img/NPC/character2.png',
+	'img/NPC/character2walk.png',
+	'img/NPC/character2head.png',
+	'img/NPC/character3.png',
+	'img/NPC/character3walk.png',
+	'img/NPC/character3head.png',
 ]
 
-for (let i = 0; i < enemySources.length; i++) {
+for (let i = 0; i < NPCSources.length; i++) {
 	const img = new Image();
-	img.src = enemySources[i];
-	enemyImages.push(img);
+	img.src = NPCSources[i];
+	NPCImages.push(img);
 }
 
 
