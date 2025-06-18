@@ -126,20 +126,6 @@ function randInt(min, max) {
 	return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
-const playerImages = [];
-
-const playerSources = [
-	'img/player/p1.png',
-	'img/player/p2.png',
-	'img/player/p3.png'
-]
-
-for (let i = 0; i < playerSources.length; i++) {
-	const img = new Image();
-	img.src = playerSources[i];
-	playerImages.push(img);
-}
-
 const tileImages = [];
 const tileSources = ['img/tiles/tileMap.png']
 const tileMapWidth = 4
