@@ -26,23 +26,37 @@
 			button {
 				background-color: green;
 				color: white;
+				text-align: inherit;
 			}
 
 			button:hover {
 				background-color: lightblue;
 				color: black;
 			}
+
+			canvas { 
+				image-rendering: optimizeSpeed;             /* STOP SMOOTHING, GIVE ME SPEED  */
+				image-rendering: -moz-crisp-edges;          /* Firefox                        */
+				image-rendering: -o-crisp-edges;            /* Opera                          */
+				image-rendering: -webkit-optimize-contrast; /* Chrome (and eventually Safari) */
+				image-rendering: pixelated;                 /* Universal support since 2021   */
+				image-rendering: optimize-contrast;         /* CSS3 Proposed                  */
+				-ms-interpolation-mode: nearest-neighbor;   /* IE8+                           */
+			}
+
 		</style>
 	</head>
 	<body onload="start()">
-		<canvas id='canvas' height='300' width='600'></canvas>
-		<div style="text-align: center;">
-			<br>
+		<h1 id="header">max1's dandy webpage</h1>
+		<h2 id="header2"><em>tile game</em></h2>
+		<canvas id='canvas' height='360' width='640'></canvas>
+		<table align="center">
 			<input style="display: none;" id="typedInput" type="text">
 			<br>
 			<button style="display: none;" id="submitButton" onclick="typedAnswerSubmit()">Submit</button>
-		<div>
- 			
+		</table>
+		<a href="../testing.html"><button>Back!</button></a>
+		<br>
 		<script src="initMain.js" type="text/javascript"></script>
 		<script src="dialogue.js" type="text/javascript"></script>
 		<script src="!game.js" type="text/javascript"></script>
