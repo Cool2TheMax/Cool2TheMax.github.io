@@ -1,16 +1,21 @@
 function start() {
 	console.log('gaming');
+	arrowGUI.arrowList.push(new ArrowSelector(6 + MenuOffset, 32, 1, 4, 45, 17, ['Inventory', 'Save', 'EDITOR', 'Exit'], 1))
+	arrowGUI.arrowList.push(new ArrowSelector(32, 285, 1, 3, 0, 17, ['Use', 'Toss', 'Exit'], 0))
+	arrowGUI.arrowList.push(new ArrowSelector(125, 105, 9, 4, 39, 21, [], 2))
+	loadIntoTextInput(alphabetString + '.?')
 	ctx.font = "bold 18px monospace"
 	loadScene();
 	newMap();
 	gameLoop();
 }
 
+
 function gameLoop() {
 	ctx.save()
-	ctx.scale(2, 2)
+	ctx.scale(scale, scale)
 	playerTick()
-	if (!Inventory) {
+	if (!Inventory && !(TYPING && safeShowMenu)) {
 		drawBackground()
 		drawTiles(1)
 		drawTiles(2)
@@ -18,21 +23,15 @@ function gameLoop() {
 		drawPlayer()
 		particleStuff('smoke')
 		NPCstuff()
-
 	}
-
 	ctx.restore()
-
 	menuStuff();
 	inventoryStuff();
-	if (!dialogue) {
-		editorStuff()
-	} else {
-		dialogueStuff()
-	}
-	
-	fpsStuff();
+	editorStuff()
+	typingStuff()
+	dialogueStuff()
 	fadeStuff()
+	fpsStuff();
 	if (STOP) {return true;} 
 	requestAnimationFrame(gameLoop);
 }
@@ -45,19 +44,11 @@ function gameLoop() {
 //==============================================================
 //==============================================================
 
-
-
-
 function playerTick() {
+	arrowStuff()
 	playerActionTileCalc()
 	place.full = place.name + '.' + place.x + '.' + place.y
-	if (isKeyPressed('z')) {
-		player.zHeldDown = zLastTurn
-		zLastTurn = true	
-	} else {
-		player.zHeldDown = false
-		zLastTurn = false
-	}
+	keysHeldDownCheck()
 	if (!dialogue && !TYPING) {
 		player.currentTile = player.x + (player.y * 32)
 		if (!(player.walkTime > 0 && player.walkTime < player.walkDelay)) {
@@ -83,6 +74,12 @@ function playerTick() {
 	}
 }
 
+function arrowStuff() {
+	if (tick % 4 == 0) {
+		arrowGUI.update([isKeyPressed('ArrowUp'), isKeyPressed('ArrowRight'), isKeyPressed('ArrowDown'), isKeyPressed('ArrowLeft')])
+	}
+}
+
 function playerActionTileCalc() {
 	if (player.dir % 2 == 1) {
 		if (player.dir == 1) { 
@@ -95,6 +92,28 @@ function playerActionTileCalc() {
 	}
 }
 
+var zLastTurn = false
+var zHeldDown = false
+var xLastTurn = false
+var xHeldDown = false
+
+function keysHeldDownCheck() {
+	if (isKeyPressed('z')) {
+		zHeldDown = zLastTurn
+		zLastTurn = true	
+	} else {
+		zHeldDown = false
+		zLastTurn = false
+	}
+	if (isKeyPressed('x')) {
+		xHeldDown = xLastTurn
+		xLastTurn = true	
+	} else {
+		xHeldDown = false
+		xLastTurn = false
+	}
+}
+
 let itemGained
 let itemAmount
 const itemLoc = []
@@ -104,36 +123,57 @@ const ltgainranges = [[1 , 3], [1, 1]]
 
 function checkForChests() {
 	if (!MENU && !TYPING) {
-		if (isKeyPressed('z') && GRID[player.actionTile] == 8) {
+		if (isKeyPressed('z') && GRID[player.actionTile] == 8 && !zHeldDown) {
 			if (EDITOR && !TYPING) {
 				selectedArray = null
-				selectedInputLocation = player.actionTile + place.full
+				selectedArrayIndex = player.actionTile + place.full
 				TYPING = true
-				typedInputBox.style.display = 'block'
-				typedInputBox.value = text
-				document.getElementById("submitButton").style.display = 'block'
+				if (itemLoc.indexOf(player.actionTile + place.full) !== -1) {
+					newDialogue('', 'c')
+					currentString = itemLocItem[itemLoc.indexOf(player.actionTile + place.full)]
+					selectedArrayIndex = itemLoc.indexOf(player.actionTile + place.full)
+				} else {
+					itemLoc.push(player.actionTile + place.full)
+					itemLocItem.push(undefined)
+					newDialogue('', 'c')
+					selectedArrayIndex = itemLoc.length - 1
+					currentString = text
+				}
+				prompt = 'Insert Item: '
+				alreadyPrinted = prompt + text
+				letter = (prompt + text).length + 1
+				startFade()
 				return;
 			}
 			if (itemLoc.indexOf(player.actionTile + place.full) !== -1) {
 				itemGained = itemLocItem[itemLoc.indexOf(player.actionTile + place.full)]
 				itemAmount = 1
 			} else {
-				let itemIdx = randInt(0, loottable.length-1)
+				let itemIdx = randInt(0, loottable.length - 1)
 				itemGained = loottable[itemIdx]
 				itemAmount = randInt(ltgainranges[itemIdx][0], ltgainranges[itemIdx][1])
 			}
-			
 			chestOpenDialogue()
-						
 			GRID[player.actionTile] = 9
-			player.actionReload = 10
+			player.actionReload = 10			
 		}
 	}
 }
 
+const vowelsList = ['a', 'e', 'i', 'o', 'u']
 function chestOpenDialogue() {
 	newDialogue('You got... ', 'c')
-	text = text + ((itemAmount == 1) ? ('A ' + itemGained + '! The ' + itemGained + ' was') : (itemAmount + ' ' + itemGained + 's! The ' + itemGained + 's were')) + ' put in your bag.'
+	if (itemAmount == 1) {
+		if (vowelsList.indexOf(itemGained[0]) !== -1) {
+			text = text + 'An '
+		} else {
+			text = text + 'A '
+		}
+		text = text + itemGained + '! The ' + itemGained + ' was'
+	} else {
+		text = text + itemAmount + ' ' + itemGained + 's! The ' + itemGained + 's were'
+	}
+	text = text + ' put in your bag.'
 	if (inven.indexOf(itemGained) == -1) {
 		inven.push(itemGained)
 		invenNums.push(itemAmount)
@@ -142,26 +182,37 @@ function chestOpenDialogue() {
 	}
 }
 
-
-
-function cameraStuff() {
-	cameraX = (player.x - 10) * 16 + (Math.ceil(player.walkTime * joyX / 2)) + (EDITOR * 50) + (MENU * 50);
-	cameraX = Math.max(0, Math.min(cameraX, 192))
-	cameraY = (player.y - 6) * 16 + (Math.ceil(player.walkTime * joyY / 2));
-	cameraY = Math.max(0, Math.min(cameraY, 332))
-
-}
-
-
 function checkForSigns() {
-	if (!MENU && isKeyPressed('z') && !player.zHeldDown) {	
+	if (!MENU && isKeyPressed('z') && !zHeldDown) {	
 		if (GRID[player.actionTile] == 7) {
 			newDialogue(player.actionTile + place.full, 's')
 			player.actionReload = 10
+			if (EDITOR && !TYPING) {
+				selectedArray = 'd'
+				prompt = 'Insert Text: '
+				alreadyPrinted = prompt + text
+				currentString = text
+				letter = (prompt + text).length + 1
+				TYPING = true
+				startFade();
+			} else if (text == '') {
+				text = 'There Is Nothing Written Here. A blank slate ready for something new.'
+			}
 		}
 	}
 
 }
+
+let cyMax = 332
+let cxMax = 192
+let scale = 2
+function cameraStuff() {
+	cameraX = (player.x - 20 / scale) * 16 + (Math.ceil(player.walkTime * joyX / 2)) + (EDITOR * 50) + (MENU * 50);
+	cameraX = Math.max(0, Math.min(cameraX, cxMax))
+	cameraY = (player.y - 12 / scale) * 16 + (Math.ceil(player.walkTime * joyY / 2));
+	cameraY = Math.max(0, Math.min(cameraY, cyMax))
+}
+
 function playerControls() {
 	joyX = (isKeyPressed('d') || isKeyPressed('ArrowRight'));
 	joyX -= (isKeyPressed('a') || isKeyPressed('ArrowLeft'));
@@ -304,7 +355,7 @@ let NPCttp = -1
 
 function NPCstuff() {
 	if (NPClist.length == 0) {return;}
-	if (!dialogue && !EDITOR && !MENU && !TYPING && player.actionReload == 0 && isKeyPressed('z') && NPCat(player.actionTile) && !player.zHeldDown) {
+	if (!dialogue && !EDITOR && !MENU && !TYPING && player.actionReload == 0 && isKeyPressed('z') && NPCat(player.actionTile) && !zHeldDown) {
 		for (let i = 0; i < NPClist.length; i++) {
 			if (NPClist[i].grid == player.actionTile && NPClist[i].walkTime == 0) {
 				newDialogue(NPClist[i].speech, (NPClist[i].sprite * 3) + 2)
@@ -500,15 +551,24 @@ function createEllipse(centerX, centerY, radius, type) {
 //EDITOR
 //====================================================
 //====================================================
+var EDITOR = false;
+var brushnum = 2;
+var LAYER = 1;
+var pallx = 0;
+var pally = 0;
+var pallIdx = 2;
+var brushpidx;
+
 
 function editorStuff() {
 	if (EDITOR) {
 		drawEditor()
 		drawPallete()
-		if (isKeyPressed('x') && !TYPING) {
+		if (isKeyPressed('x') && !xHeldDown && !TYPING) {
 			EDITOR = false;
+			MENU = true;
+			arrowGUI.activeIndex = 0
 			saveScene();
-			MENU = true
 		}
 	}
 }
@@ -516,31 +576,31 @@ function editorStuff() {
 
 function drawEditor() {
 	if (mouseX < 500) {
-		let gx = Math.floor((mouseX + cameraX) / 32)
-		let gy = Math.floor((mouseY + cameraY) / 32)
+		let gx = Math.floor((mouseX + (cameraX*scale)) / (scale * 16))
+		let gy = Math.floor((mouseY + (cameraY*scale)) / (scale * 16))
 		let gidx = gx+(gy*GMAX)
-		printTileImgFromMap('tile', brushnum, (gx * 32) - cameraX, (gy * 32) - cameraY, 32, 32)
+		printTileImgFromMap('tile', brushnum, (gx * 16 * scale) - cameraX * scale, (gy * 16 * scale) - cameraY * scale, 16 * scale, 16 * scale)
 
 		ctx.fillStyle = 'rgb(43, 43, 43)'
-		ctx.strokeRect((gx*32)-cameraX, (gy*32)-cameraY, 32, 32)
+		ctx.strokeRect((gx * 16 * scale) - cameraX * scale, (gy * 16 * scale) - cameraY * scale, 16 * scale, 16 * scale)
 		let tmp = gidx + ((LAYER-1)*(GMAX*GMAX))
-		if (mouseDown && checkMouseBounds(true)) {
+		if (mouseDown && checkMouseBounds(true) && !TYPING) {
 			if (GRID[tmp] == 7) {
 				tmp2 = DialogueLocations.indexOf(tmp + place.full)
 				DIALOGUES.splice(tmp2, 1)
 				DialogueLocations.splice(tmp2, 1)
-			} 
-			if (brushnum == 7) {
-				DialogueLocations.push(tmp + place.full)
-				DIALOGUES.push("This string is a test of word wrapping. How well does it wrap?")
 			} else if (GRID[tmp] == 8 && itemLoc.indexOf(tmp + place.full) !== -1) {
 				tmp2 = itemLoc.indexOf(tmp + place.full)
 				itemLoc.splice(tmp2, 1)
 				itemLocItem.splice(tmp2, 1)
 			}
+			if (brushnum == 7) {
+				DialogueLocations.push(tmp + place.full)
+				DIALOGUES.push('')
+			}
 			GRID[tmp] = brushnum
 		}
-		if (isKeyPressed('e') && checkMouseBounds()) {brushnum = GRID[tmp]}
+		if (isKeyPressed('e') && checkMouseBounds() && !TYPING) {brushnum = GRID[tmp]}
 		
 	}
 }
@@ -682,7 +742,7 @@ function fadeStuff() {
 			fadeTime = 0
 		}
 		if (1 == (Math.max(0, Math.min(1, -Math.pow((fadeTime - fadeDuration / 2) / (fadeDuration / 2), 2) + 1)))) {
-			if (safeShowMenu) {safeShowMenu = false; Inventory = false} else (safeShowMenu = true)
+			if (safeShowMenu) {safeShowMenu = false; Inventory = false; TYPING = false; dialogue = false;} else (safeShowMenu = true)
 		}
 	}
 }
@@ -692,25 +752,16 @@ function startFade() {
 	fadeTime = 0
 }
 
-function drawTriangle(dir, x, y) {
-	ctx.beginPath()
-	ctx.moveTo(19 + x, 8 + y)
-	ctx.lineTo(x, 16 + y)
-	ctx.lineTo(x, y)
-	ctx.lineTo(19 + x, 8 + y)
-	ctx.closePath()
-	ctx.fill()
-}
+
 
 //MENU
 //===========================================================
 //===========================================================
 
 var skinMenu = false
-var menuLevel = 0;
-const MenuItems = ['Inventory', 'Save', 'EDITOR', 'Exit']
 const MenuFunctions = [
 		function() {
+			arrowGUI.activeIndex = 0
 			Inventory = true
 			invLevel = 0
 			invScroll = 0
@@ -721,6 +772,7 @@ const MenuFunctions = [
 			feedback.push({text : 'WIP: Saving is work in progress', howLongAgo : 0})
 		},
 		function () {
+			arrowGUI.activeIndex = -1
 			MENU = false;
 			EDITOR = true;
 		},
@@ -734,7 +786,7 @@ function menuStuff() {
 	if (isKeyPressed('Enter') && !EDITOR && !Inventory && !dialogue && tick % 10 == 0) {
 		if (!MENU) {
 			MENU = true;
-			menuLevel = 0;
+			arrowGUI.activeIndex = 0
 		}
 	}
 	if (MENU) {
@@ -743,12 +795,9 @@ function menuStuff() {
 			menuJoyY -= (isKeyPressed('w') || isKeyPressed('ArrowUp'))
 			menuJoyX = (isKeyPressed('d') || isKeyPressed('ArrowRight'))
 			menuJoyX -= (isKeyPressed('a') || isKeyPressed('ArrowLeft'))
-			if (!Inventory) {
-				menuLevel += menuJoyY * !((menuLevel == 0 && menuJoyY == -1) || (menuLevel == MenuItems.length - 1 && menuJoyY == 1))
-			}
 		}
-		if (isKeyPressed('x') && !Inventory) {MenuFunctions[MenuFunctions.length-1]()}
-		if (isKeyPressed('z') && !player.zHeldDown && !Inventory) {MenuFunctions[menuLevel]()}
+		if (isKeyPressed('x') && !xHeldDown && !Inventory) {MenuFunctions[MenuFunctions.length-1]()}
+		if (isKeyPressed('z') && !zHeldDown && !Inventory) {MenuFunctions[arrowGUI.arrowList[0].arrowLocation]()}
 		drawMenu()
 	}
 }
@@ -759,17 +808,7 @@ function drawMenu() {
 	ctx.fillStyle = 'rgb(43, 43, 43)'
 	ctx.fillRect(MenuOffset, 10, 120, 200)
 	ctx.fillStyle = 'rgb(250, 255, 186)'				
-	for (let i = 0; i < MenuItems.length; i++) {
-		ctx.fillText(MenuItems[i], 6 + MenuOffset, i * 17 + 32)
-	}
-
-	ctx.beginPath()
-	ctx.moveTo(100 + MenuOffset, menuLevel * 17 + 28)
-	ctx.lineTo(118 + MenuOffset, menuLevel * 17 + 35)
-	ctx.lineTo(118 + MenuOffset, menuLevel * 17 + 21)
-	ctx.lineTo(100 + MenuOffset, menuLevel * 17 + 28)
-	ctx.closePath()
-	ctx.fill()
+	arrowGUI.arrowList[0].draw()
 }
 
 var inven = ['gold coin', 'sword', 'healing potion']
@@ -779,8 +818,6 @@ var Inventory = false
 var invLevel = 0
 var invScroll = 0
 var invSub = false
-var invSubSel = 0
-var invSubAllow = 0
 var invSubFuncs = [
 	function(i) {
 		if (itemFuncs[itemsList.indexOf(inven[i])] !== null) {
@@ -790,26 +827,26 @@ var invSubFuncs = [
 		}
 
 	},
-	function(i) {inven.splice(i, 1); invenNums.splice(i, 1)},
-	function() {invSub = false}
+	function(i) {itemRemoval(i, invenNums[i])},
+	function() {}
 ]
 
 const itemFuncs = [
-	null, null, 
+	null, null,
 	function(i) {
-			invenNums[i]--
 			newDialogue('You Drank the Health Potion!', 2)
-			itemCheck(i)
+			itemRemoval(i, 1)
 	}
 ]
 const itemsList = ['gold coin', 'sword', 'healing potion']
 const itemDesc = ['A shiny gold coin', 'A bit too expensive for all of it\'s rust', 'Smells sweet, but tastes horrible']
 
-function itemCheck(i) {
+function itemRemoval(i, number) {
+	invenNums[i] -= number
 	if (invenNums[i] < 1) {
 		inven.splice(i, 1)
-		inven.splice(i, 1)
-		if (i == inven.length) {invLevel--}
+		invenNums.splice(i, 1)
+		invLevel--
 		if (invLevel < 0) {invLevel = 0}
 	}
 }
@@ -842,35 +879,36 @@ function inventoryStuff() {
 			ctx.strokeRect(30, 180, 154, 80)
 		}
 		if (invSub && inven.length !== 0) {
-			drawTriangle(null, 32, invSubSel * 17 + 272)
-			let words = ['Use', 'Toss', 'Exit']
-			for (let i = 0; i < words.length; i++) {
-				ctx.fillText(words[i], 32 + ((invSubSel == i) * 24), 285 + (i * 17))
-			}
+			arrowGUI.arrowList[1].draw()
 			ctx.strokeRect(30, 265, 154, 70)
-			if (tick % 4 == 0) {
-				invSubSel += menuJoyY * !((invSubSel == 0 && menuJoyY == -1) || (invSubSel == invSubFuncs.length - 1 && menuJoyY == 1))
-			}
-			if (!isKeyPressed('z') && invSubAllow !== 2) {
-				invSubAllow++
-			} else if (isKeyPressed('z') && invSubAllow == 2 && !dialogue) {
-				invSubFuncs[invSubSel](invLevel)
-				invSubSel = 0
+			if (isKeyPressed('z') && !zHeldDown && !dialogue) {
+				invSubFuncs[arrowGUI.arrowList[1].arrowLocation](invLevel)
 				invSub = false
-				invSubAllow++
+				arrowGUI.activeIndex = -1
 				return;
 			}
 		}
-		if (invSubAllow == 3 && !isKeyPressed('z')) {invSubAllow = 0}
-		if (isKeyPressed('x') && fadeTime == 0 && !dialogue) {
-			startFade();
-			invSubAllow = 0
-			invSub = false
+		if (!zHeldDown && isKeyPressed('z') && !dialogue) {invSub = true; arrowGUI.activeIndex = 1}
+		if (isKeyPressed('x') && !xHeldDown && fadeTime == 0 && !dialogue) {
+			if (!invSub) {
+				arrowGUI.activeIndex = 0
+				startFade();
+			} else {
+				invSub = false
+			}
 		}
 	}
 
 }
-
+function drawTriangle(dir, x, y) {
+	ctx.beginPath()
+	ctx.moveTo(19 + x, 8 + y)
+	ctx.lineTo(x, 16 + y)
+	ctx.lineTo(x, y)
+	ctx.lineTo(19 + x, 8 + y)
+	ctx.closePath()
+	ctx.fill()
+}
 
 function invScrollLogic() {
 	if (tick % 5 == 0 && !invSub) {
@@ -884,15 +922,95 @@ function invScrollLogic() {
 			if (invLevel >= invScroll + 11) {
 				invScroll++
 			}
-		}
-		if (isKeyPressed('z') && !dialogue && invSubAllow == 0) {
-			invSub = true
-			invSubAllow++
 		}	
 	}
 }
 
+//TYPING
+//===========================================================
+//===========================================================
+let newFontSize = 27
+let TYPING = false
+var currentString = ''
+var selectedArrayIndex
+var selectedArray
+var prompt = ''
+function typingStuff() {
+	if (TYPING && safeShowMenu) {
+		ctx.fillStyle = 'rgb(250, 255, 186)'
+		ctx.fillRect(0, 0, canvas.width, canvas.height)
+		if (inputTextMode == 1) {
+			ctx.fillStyle = 'rgb(189, 85, 77)'
+		} else if (inputTextMode == 0) {
+			ctx.fillStyle = 'rgb(42, 86, 156)'
+		} else {
+			ctx.fillStyle = 'rgb(48, 140, 63)'
+		}
+		ctx.fillRect(111, 74, 415, 116)
+		let displayString = prompt + currentString
+		if (tick % 40 > 20) {displayString = displayString + '_'}
+		alreadyPrinted = displayString
+		ctx.fillStyle = 'black'
+		ctx.font = "bold " + newFontSize + "px monospace"
+		arrowGUI.activeIndex = '2'
+		arrowGUI.arrowList[2].draw()
+		ctx.font = "bold 18px monospace"
+		if (isKeyPressed('z') && !zHeldDown) {
+			let selectedChar = arrowGUI.arrowList[2].names[arrowGUI.arrowList[2].arrowLocation]
+			if (selectedChar == '') {
+				selectedChar = ' '
+			} else if (selectedChar == 'Erase') {
+				currentString = currentString.slice(0, currentString.length - 1)
+			} else if (selectedChar == 'Enter') {
+				startFade();
+				alreadyPrinted = currentString
+				letter = currentString.length
+				feedback.push({text: 'Text Recorded In Object', howLongAgo : 0})
+				if (selectedArray == 'd') {
+					DIALOGUES[DialogueLocations.indexOf(selectedArrayIndex)] = currentString
+				} else {
+					itemLocItem[selectedArrayIndex] = currentString
+				}
+			} else if (selectedChar == 'Lower') {
+				inputTextMode = 1
+				loadIntoTextInput(alphabetString.toLowerCase() + '.?')
+			} else if (selectedChar == 'Upper') {
+				inputTextMode = 0
+				loadIntoTextInput(alphabetString + '.?')
+			} else if (selectedChar == 'Other') {
+				inputTextMode = 2
+				loadIntoTextInput('12345+=67890-*#$%^&():!<> /~')
+			}
+			if (selectedChar.length > 1) {selectedChar = ''}
+			currentString = currentString + selectedChar
+		}
+	}
+}
 
+let inputTextMode = 0
+let alphabetString = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+function loadIntoTextInput(newInputMap) {
+	let newInput = stringToArr(newInputMap)
+	newInput.splice(7, 0, ' ')
+	newInput.splice(8, 0, 'Erase')
+	newInput.splice(16, 0, ' ')
+	if (inputTextMode == 1) {
+		newInput.splice(17, 0, 'Upper')
+		newInput.splice(25, 0, ' ')
+		newInput.splice(26, 0, 'Other')
+	} else if (inputTextMode == 0) {
+		newInput.splice(17, 0, 'Lower')
+		newInput.splice(25, 0, ' ')
+		newInput.splice(26, 0, 'Other')
+	} else {
+		newInput.splice(17, 0, 'Upper')
+		newInput.splice(25, 0, ' ')
+		newInput.splice(26, 0, 'Lower')
+	}
+	newInput.push(' ')
+	newInput.push('Enter')
+	arrowGUI.arrowList[2].names = newInput
+}
 //FPS
 //===========================================================
 //===========================================================
@@ -920,7 +1038,6 @@ function fpsStuff() {
 		ctx.fillText('Editor Enabled. Press [X] to close', 0, feedback.length * 20 + 20)
 	}
 	ctx.fillText('FPS: ' + times.length, 0, feedback.length * 20 + 20 + (EDITOR * 20))
-	//ctx.fillRect(35, 35, 144, 144)
 	if (activeTab) {
 		tick++
 	}
