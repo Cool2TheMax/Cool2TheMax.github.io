@@ -28,12 +28,10 @@ var player = {
 	walkDelay : 32,
 	isSprinting : false,
 	currentTile : 0,
-	zHeldDown : false,
 	actionReload : 0,
 	actionTile : 0
 }
 
-var zLastTurn = false
 
 var cameraY;
 var cameraX;
@@ -50,15 +48,6 @@ var place = {
 }
 var savedGRIDS = [GRID]
 var savedNAMES = [place.full]
-
-
-var EDITOR = false;
-var brushnum = 2;
-var LAYER = 1;
-var pallx = 0;
-var pally = 0;
-var pallIdx = 2;
-var brushpidx;
 
 window.addEventListener('mousemove', function (e) {
 	mouseX = e.x;
@@ -88,6 +77,14 @@ function checkMouseBounds(def, x1, y1, x2, y2) {
 		if (mouseX > y2) {return false}
 	}
 	return true;
+}
+
+function stringToArr(st) {
+	let final = []
+	for (let i = 0; i < st.length; i++) {
+		final.push(st.charAt(i))
+	}
+	return final;
 }
 
 function printImg(image, x, y) {
@@ -124,6 +121,20 @@ document.addEventListener('keyup', function(event) {
 
 function randInt(min, max) {
 	return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+const playerImages = [];
+
+const playerSources = [
+	'img/player/p1.png',
+	'img/player/p2.png',
+	'img/player/p3.png'
+]
+
+for (let i = 0; i < playerSources.length; i++) {
+	const img = new Image();
+	img.src = playerSources[i];
+	playerImages.push(img);
 }
 
 const tileImages = [];
@@ -183,21 +194,4 @@ for (let i = 0; i < NPCSources.length; i++) {
 	const img = new Image();
 	img.src = NPCSources[i];
 	NPCImages.push(img);
-}
-
-
-var selectedInputLocation
-var selectedArray
-
-function typedAnswerSubmit() {
-	typedInput = typedInputBox.value
-	typedInputBox.style.display = 'none'
-	document.getElementById("submitButton").style.display = 'none'
-	TYPING = false
-	feedback.push({text: 'Text Recorded In Sign', howLongAgo : 0})
-	if (selectedArray == 'd') {
-		DIALOGUES[DialogueLocations.indexOf(selectedInputLocation)] = typedInput
-	} else {
-		itemLocItem[itemLoc.indexOf(selectedInputLocation)] = typedInput
-	}
 }
