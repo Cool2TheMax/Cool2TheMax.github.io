@@ -1,6 +1,3 @@
-const typedInputBox = document.getElementById("typedInput")
-var typedInput = typedInputBox.value;
-
 const canvas = document.getElementById('canvas');
 const ctx= canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false
