@@ -7,7 +7,7 @@ function start() {
 }
 let audio = null
 let songIdx = 0
-let List = ['Feels Like We Only Go Backwards', 'Lateralus', 'Scar Tissue', 'Creep', 'The Grudge', 'Everlong']
+let List = []
 function changeSong(newIndex) {
 	if (audio !== null) {
 		if (audio.paused) {
@@ -46,4 +46,5 @@ function onPausePress() {
 	document.getElementById('play').style.display = 'inline-block'
 	pauseButton.style.display = 'none'
 	audio.pause()
+
 }
