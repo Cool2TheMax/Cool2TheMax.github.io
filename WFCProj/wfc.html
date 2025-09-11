@@ -1,0 +1,29 @@
+<!DOCTYPE>
+<html>
+	<head>
+		<title>
+			max1's dandy site | Wave Function Collapse
+		</title>
+		<link rel="shortcut icon" href="../img/smileyface2.gif">
+		<link href="../style-test.css" rel="stylesheet" type="text/css">
+	</head>
+	<body onload="start()">
+		<h1 id="header">max1's dandy webpage</h1>
+		<h2>Wave Function Collapse</h2>
+		<br>
+		<canvas id='canvas' width='256' height='256'></canvas>
+		<br>
+		<button onclick='start();'>Run Once!</button>
+		<br>
+		<a href="../index.html"><button>Back!</button></a>
+		<h3>What's this?</h3>
+		<p>
+			This project is a wave function collapse (WFC) procedural terrain generator.
+			<br>The way it works is by having each tile having a list of possible choices,
+			<br>and when one tile spawns near it, the amount of possible tiles for each one
+			<br>decreases, and then out of those, a random one is chosen. This mostly works, but
+			<br>sometimes these rulesets are broken. I still think it creates neat looking terrain. 
+		</p>
+		<script src="wfc.js" type="text/javascript"></script>
+	</body>
+</htm‎l>
