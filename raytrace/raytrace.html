@@ -1,0 +1,27 @@
+<!DOCTYPE>
+<html>
+	<head>
+		<title>
+			max1's dandy site | raytrace
+		</title>
+		<link rel="shortcut icon" href="../img/smileyface2.gif">
+		<link href="../style-test.css" rel="stylesheet" type="text/css">
+	</head>
+	<body onload="start()">
+		<h1 id="header">max1's dandy webpage</h1>
+		<h2 id="header2"><em>raytracerizer</em></h2>
+		<canvas id='canvas' height='360' width='640'></canvas>
+		<br>
+		<a href="../index.html"><button>Back!</button></a>
+		<h3>What's this?</h3>
+		<p>
+			This is a raytracing image renderer. For about every 10 pixels on the screen,
+			<br>the program "fires" a ray from the camera at an angle. When this ray hits
+			<br>an object, it returns the distance it traveled <i>(this was the raytracing part)</i>.
+			<br>This allows the renderer <i>(the image renderer part)</i> to determine a height of wall
+			<br>for this ray, and then draws the texture onto this. You can change views by pressing "<i>t</i>",
+			<br>which changes the view to the map and what rays are being hit. I need to add lens correction to this.
+		</p>
+		<script src="main.js" type="text/javascript"></script>
+	</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE>
+<html>
+	<head>
+		<title>
+			max1's dandy site | music
+		</title>
+		<link rel="shortcut icon" href="../img/smileyface2.gif">
+		<link href="../style-test.css" rel="stylesheet" type="text/css">
+	</head>
+	<body>
+		<h1 id="header">max1's dandy webpage</h1>
+		<h2 id="header2"><em>Music</em></h2>
+		<button id='begin' onclick='start()'>Begin</button>
+		<br>
+		<div id='controls' style='display: none;'>
+			<button onclick='changeSong(songIdx - 1)'>Previous!</button>
+			<button id='play' onclick='onPlayPress()' style='display : none;'>Play!</button>
+			<button id='pause' onclick='onPausePress()'>Pause!</button>
+			<button onclick='changeSong(songIdx + 1)'>Next!</button>
+			<br>
+		</div>
+		<a href="../index.html"><button>Back!</button></a>
+		<br>
+		<h3>What's this?</h3>
+		<p>This is a music player. There currently are no songs to play. This is because I do not want to get sued for copyright infringment
+		<br>and I do not want to share my music tastes with the public. To add Songs, upload an mp3 of the song, and add the file name minus the file extension into
+		<br>the JavaScript array named "List", or add it permanently by editing the main.js fail</p>
+		<script type='text/javascript' src='main.js'></script>
+	</body>
+</html>
+
